@@ -469,7 +469,7 @@ class Returns_US_1871:
         assert start < 2016
         count = 0
         for row in self.dataframe.iloc[start:].iterrows():
-            (stocks, bonds, inflation) = (Decimal(row[1][x]) / 100 for x in ("Stocks", "Bonds", "Inflation"))
+            (stocks, bonds, inflation) = (Decimal(row[1][x]) / 100 for x in ("VFINX", "IT Bonds", "CPI-U"))
             yield AnnualChange(
                 year = row[1]['Year'],
                 stocks = stocks,
