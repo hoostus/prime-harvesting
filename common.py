@@ -1,5 +1,6 @@
 import operator
 import functools
+import itertools
 import pandas
 import collections
 from decimal import *
@@ -443,6 +444,9 @@ def cew(cashflows):
     base = constant_factor * sum(map(sigma, cashflows))
     return pow(base, -1/gamma)
 
+def low_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
+    return itertools.repeat(AnnualChange(year = 0, stocks = stocks, bonds = bonds, inflation = inflation))
+
 class Returns_US_1871:
     def __init__(self, wrap=False):
         # import US based data from 1871 from the simba backtesting spreadsheet found on bogleheads.org
@@ -461,6 +465,8 @@ class Returns_US_1871:
 
     def iter_from(self, year, length=None):
         start = year - 1871
+        assert start >= 0
+        assert start < 2016
         count = 0
         for row in self.dataframe.iloc[start:].iterrows():
             (stocks, bonds, inflation) = (Decimal(row[1][x]) / 100 for x in ("Stocks", "Bonds", "Inflation"))
