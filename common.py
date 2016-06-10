@@ -5,6 +5,7 @@ import pandas
 import collections
 import math
 from decimal import *
+import random
 
 # Set graph styling to common styles
 from matplotlib import pyplot as plt
@@ -167,6 +168,8 @@ class PrimeHarvesting(HarvestingStrategy):
 
             amount = yield self.portfolio.empty_cash()
 
+# TODO: this class needs to be updated to work like VPW and EM in the
+# new style.
 class ConstantWithdrawals(WithdrawalStrategy):
     def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.05')):
         super().__init__(portfolio, harvest_strategy)
@@ -252,53 +255,110 @@ extended_mufp_table = [
     Decimal('5.1')
     ]
 
+class VPW(WithdrawalStrategy):
+    def calc_withdrawal(portfolio_value, year):
+        return vpw_rates[year] * portfolio_value
+
+    def withdrawals(self):
+        index = 0
+        withdrawal = VPW.calc_withdrawal(self.portfolio.value, index)
+        actual_withdrawal = self.harvest.send(withdrawal)
+
+        change = yield report(self.portfolio, actual_withdrawal, None)
+        assert isinstance(change, AnnualChange)
+
+        index += 1
+
+        while True:
+            (gains, _, _) = self.portfolio.adjust_returns(change)
+
+            withdrawal = vpw_rates[index] * self.portfolio.value
+            actual_withdrawal = self.harvest.send(withdrawal)
+
+            change = yield report(self.portfolio, actual_withdrawal, gains)
+            assert isinstance(change, AnnualChange)
+            
+            index += 1
+
 class EM(WithdrawalStrategy):
-    def __init__(self, portfolio, harvest_strategy, scale_rate=Decimal('.95'), floor_rate=Decimal('.025'), cap_rate=Decimal('1.5'), years_left=40):
+    DEFAULT_SCALE_RATE = Decimal('.95')
+    DEFAULT_FLOOR_RATE = Decimal('.025')
+    DEFAULT_CAP_RATE = Decimal('1.5')
+    DEFAULT_INITIAL_WITHDRAWAL_RATE = Decimal('.05')
+
+    def __init__(self, portfolio, harvest_strategy,
+                 scale_rate=DEFAULT_SCALE_RATE,
+                 floor_rate=DEFAULT_FLOOR_RATE,
+                 cap_rate=DEFAULT_CAP_RATE,
+                 initial_withdrawal_rate=DEFAULT_INITIAL_WITHDRAWAL_RATE,
+                 years_left=40):
         super().__init__(portfolio, harvest_strategy)
 
         self.scale_rate = scale_rate
         self.floor_rate = floor_rate
         self.cap_rate = cap_rate
-        self.initial_withdrawal = None
+        self.initial_withdrawal_rate = initial_withdrawal_rate
         self.years_left = years_left
-        self.initial_withdrawal = get_extended_mufp(years_left) * portfolio.value
-        #print('%d %d' % (self.initial_withdrawal, self.initial_withdrawal * cap_rate))
 
-    def withdrawals(self):
-        change = yield
+    def calc_withdrawal(portfolio_value, years_left,
+                        scale_rate=DEFAULT_SCALE_RATE,
+                        floor_rate=DEFAULT_FLOOR_RATE,
+                        cap_rate=DEFAULT_CAP_RATE,
+                        initial_withdrawal_rate=DEFAULT_INITIAL_WITHDRAWAL_RATE):
+        # first year
+        withdrawal = initial_withdrawal_rate * portfolio_value
+        inflation_adjusted_withdrawal_amount = withdrawal
+        (portfolio_value, inflation) = yield withdrawal
+                
         while True:
-            (gains, _, _) = self.portfolio.adjust_returns(change)
-            self.cumulative_inflation *= (1 + change.inflation)
-
-            withdrawal_rate = get_extended_mufp(self.years_left)
-            withdrawal = withdrawal_rate * self.portfolio.value
-
-            scale_boundary = Decimal('.75') * (self.initial_withdrawal * self.cumulative_inflation)
+            inflation_adjusted_withdrawal_amount = withdrawal * (1 + inflation)
+            
+            withdrawal_rate = get_extended_mufp(years_left)
+            withdrawal = withdrawal_rate * portfolio_value
+            
+            scale_boundary = Decimal('.75') * inflation_adjusted_withdrawal_amount
             if withdrawal > scale_boundary:
                 scale_diff = withdrawal - scale_boundary
                 scale_ratio = scale_diff / scale_boundary
                 if scale_ratio > 1:
                     scale_ratio = Decimal('1.0')
-                withdrawal = scale_boundary + (scale_diff * scale_ratio * self.scale_rate)
+                withdrawal = scale_boundary + (scale_diff * scale_ratio * scale_rate)
+            
+            cap_amount = (cap_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
+            withdrawal = min(withdrawal, cap_amount)
+                
+            floor_amount = (floor_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
+            withdrawal = max(withdrawal, floor_amount)
+            
+            (portfolio_value, inflation) = yield withdrawal
+            
+            years_left -= 1
+            # if we go more than 40 years, just keep pretending we're still in the final year....
+            if years_left < 1:
+                years_left = 1
 
-            cap_amount = self.cap_rate * self.initial_withdrawal * self.cumulative_inflation
-            if withdrawal > cap_amount:
-                #print('Exceeded cap')
-                withdrawal = cap_amount
+    def withdrawals(self):
+        em = EM.calc_withdrawal(self.portfolio.value, self.years_left)
+        withdrawal = em.send(None)
+        actual_withdrawal = self.harvest.send(withdrawal)
 
-            floor_amount = self.floor_rate * self.initial_withdrawal * self.cumulative_inflation
-            if withdrawal < floor_amount:
-                #print('Exceeded floor')
-                withdrawal = floor_amount
-
+        change = yield report(self.portfolio, actual_withdrawal, None)
+        assert isinstance(change, AnnualChange)
+            
+        while True:
+            (gains, _, _) = self.portfolio.adjust_returns(change)
+            self.cumulative_inflation *= (1 + change.inflation)
+            
+            withdrawal = em.send((self.portfolio.value, change.inflation))                            
             actual_withdrawal = self.harvest.send(withdrawal)
-            self.years_left -= 1
             change = yield report(self.portfolio, actual_withdrawal, gains)
             assert isinstance(change, AnnualChange)
 
 def ECM(portfolio, harvest_strategy):
     return EM(portfolio, harvest_strategy, scale_rate=Decimal('.6'), floor_rate=Decimal('.025'))
 
+# TODO: this class needs to be updated to work like VPW and EM in the
+# new style.
 class SensibleWithdrawals(WithdrawalStrategy):
     def __init__(self, portfolio, harvest_strategy, extra_return_boost=Decimal('.31'), initial_rate=Decimal('.05')):
         super().__init__(portfolio, harvest_strategy)
@@ -475,7 +535,7 @@ def hreff(withdrawals, returns):
         def sigma(c):
             return pow(f(c), 1/gamma)
 
-        constant_factor = 1.0 / len(cashflows)
+        constant_factor = Decimal('1.0') / len(cashflows)
         base = constant_factor * sum(map(sigma, cashflows))
         return pow(base, gamma)
 
@@ -515,7 +575,7 @@ def ssr(r):
     # at the beginning of the year,
     # knowing that you will die this year)
     r_r = list(reversed(r[:-1]))
-    return 1 / ssr_seq(r_r)
+    return Decimal('1') / ssr_seq(r_r)
 
 def cew(cashflows):
     ''' Constant Equivalent Withdrawals
@@ -534,7 +594,7 @@ def cew(cashflows):
     def sigma(c):
         return pow(c, -gamma) / gamma
 
-    constant_factor = 1.0 / len(cashflows) * gamma
+    constant_factor = Decimal('1.0') / len(cashflows) * gamma
     base = constant_factor * sum(map(sigma, cashflows))
     return pow(base, -1/gamma)
 
@@ -584,8 +644,14 @@ def simulate_withdrawals(series,
     strategy = harvesting(portfolio).harvest()
     strategy.send(None)
     withdrawal_strategy = withdraw(portfolio, strategy).withdrawals()
-    withdrawal_strategy.send(None)
     annual = []
+
+    # Withdrawals happen at the start of the year, so the first time
+    # we don't have any performance data to send them....
+    data = withdrawal_strategy.send(None)
+    annual.append(data)
+    years -= 1
+
     for _, d in zip(range(years), series):
         data = withdrawal_strategy.send(d)
         annual.append(data)
@@ -663,10 +729,30 @@ class Returns_US_1871:
             self.dataframe += self.dataframe
 
     def __iter__(self):
-        return self.iter_from(0)
+        return self.iter_from(1871)
 
     def get_year(self, index):
         return self.dataframe.iloc[index]['Year']
+    
+    def shuffle(self):
+        index = list(self.dataframe.index)
+        random.shuffle(index)
+        self.dataframe = self.dataframe.ix[index]
+        self.dataframe.reset_index()
+        return self
+    
+    def random_year(self):
+        i = random.randint(0, len(self.dataframe) - 1)
+        return self.fmt(self.dataframe.iloc[i])
+    
+    def fmt(self, row):
+        (stocks, bonds, inflation) = (Decimal(row[x]) / 100 for x in ("VFINX", "IT Bonds", "CPI-U"))
+        return AnnualChange(
+                year = row['Year'],
+                stocks = stocks,
+                bonds = bonds,
+                inflation = inflation
+        )        
 
     def iter_from(self, year, length=None):
         start = year - 1871
@@ -674,13 +760,122 @@ class Returns_US_1871:
         assert start < 2016
         count = 0
         for row in self.dataframe.iloc[start:].iterrows():
-            (stocks, bonds, inflation) = (Decimal(row[1][x]) / 100 for x in ("VFINX", "IT Bonds", "CPI-U"))
-            yield AnnualChange(
-                year = row[1]['Year'],
-                stocks = stocks,
-                bonds = bonds,
-                inflation = inflation
-            )
+            yield self.fmt(row[1])
             count += 1
             if length != None and count >= length:
                 raise StopIteration
+
+# based on http://www.ssa.gov/OACT/STATS/table4c6.html Period Life Table, 2009
+# https://drive.google.com/open?id=0Bx-R9jPONgMgX0ktTUVFbVU0TEU
+lifetable_for_women = [
+	0.010298, # 65
+	0.011281,
+	0.012370,
+	0.013572,
+	0.014908,
+	0.016440, # 70
+	0.018162,
+	0.020019,
+	0.022003,
+	0.024173,
+	0.026706, # 75
+	0.029603,
+	0.032718,
+	0.036034,
+	0.039683,
+	0.043899, # 80
+	0.048807,
+	0.054374,
+	0.060661,
+	0.067751,
+	0.075729, # 85
+	0.084673,
+	0.094645,
+	0.105694,
+	0.117853,
+	0.131146, # 90
+	0.145585,
+	0.161175,
+	0.177910,
+	0.195774,
+	0.213849, # 95
+    0.231865,
+    0.249525,
+    0.266514,
+    0.282504,
+    0.299455, # 100
+    0.317422, 
+    0.336467,
+    0.356655, 
+    0.378055, 
+    0.400738, # 105
+    0.424782, 
+    0.450269, 
+    0.477285, 
+    0.505922, 
+    0.536278, # 110
+    0.568454, 
+    0.602561, 
+    0.638715, 
+    0.677038, 
+    0.717660, # 115
+    0.760720, 
+    0.806363, 
+    0.851378,
+    0.893947 # 119 
+]
+
+# starting at age 65, 40-year span, based on 60% domestic stocks, 40% domestic bonds
+vpw_rates = map(lambda x: x/100, [
+    Decimal('4.7'),
+    Decimal('4.7'),
+    Decimal('4.8'),
+    Decimal('4.9'),
+    Decimal('4.9'),
+    Decimal('5.0'),
+    Decimal('5.1'),
+    Decimal('5.1'),
+    Decimal('5.2'),
+    Decimal('5.3'),
+    Decimal('5.4'),
+    Decimal('5.5'),
+    Decimal('5.6'),
+    Decimal('5.7'),
+    Decimal('5.9'),
+    Decimal('6.0'),
+    Decimal('6.2'),
+    Decimal('6.3'),
+    Decimal('6.5'),
+    Decimal('6.7'),
+    Decimal('6.9'),
+    Decimal('7.2'),
+    Decimal('7.5'),
+    Decimal('7.8'),
+    Decimal('8.1'),
+    Decimal('8.5'),
+    Decimal('9.0'),
+    Decimal('9.5'),
+    Decimal('10.1'),
+    Decimal('10.9'),
+    Decimal('11.7'),
+    Decimal('12.8'),
+    Decimal('14.2'),
+    Decimal('15.9'),
+    Decimal('18.2'),
+    Decimal('21.5'),
+    Decimal('26.4'),
+    Decimal('34.6'),
+    Decimal('50.9'),
+    Decimal('100.0'),
+
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+    Decimal('0'),
+])
+vpw_rates = list(vpw_rates)
