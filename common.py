@@ -539,7 +539,7 @@ def hreff(withdrawals, returns):
         base = constant_factor * sum(map(sigma, cashflows))
         return pow(base, gamma)
 
-    return n(withdrawals) / ssr(returns)
+    return cew_floor(withdrawals) / ssr(returns)
 
 def wer(withdrawals, returns):
     ''' Withdrawal Efficiency Rate
