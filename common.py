@@ -3,6 +3,7 @@ import functools
 import itertools
 import pandas
 import collections
+import math
 from decimal import *
 
 # Set graph styling to common styles
@@ -29,12 +30,55 @@ def format_plt_labels_with_commas(plt):
 setcontext(ExtendedContext)
 #getcontext().prec = 5
 
-def plot_two_series(s1, s2, s1_title='', s2_title='', x_label='', title='', range=()):
+def annotate(axis, text, xy, xy_text):
+    axis.annotate("${:,}".format(int(text)), xy=xy,
+             xytext=xy_text,
+             arrowprops=dict(facecolor='black', connectionstyle="arc3,rad=.2"),
+             fontsize=14)
+
+def find_smallest(s):
+    smallest = min(s)
+    index_of = s.index(smallest)
+    return(index_of, smallest)
+
+def find_biggest(s):
+    biggest = max(s)
+    index_of = s.index(biggest)
+    return(index_of, biggest)
+
+def annotate_smallest(axis, s, location=None):
+    (x, y) = find_smallest(s)
+    if location == None:
+        location = (x * Decimal('1.1'), y * Decimal('.9'))
+        
+    annotate(axis, y, (x, y), location)
+    
+def annotate_biggest(axis, s, location=None):
+    (x, y) = find_biggest(s)
+    if location == None:
+        location = (x * Decimal('0.9'), y * Decimal('1.1'))
+        
+    annotate(axis, y, (x, y), location)
+
+def plot(s, x_label='', y_label='', y_lim=(), title=''):
+    fig, ax1 = plt.subplots()
+    ax1.plot(s, 'b')
+    ax1.set_ylabel(y_label, color='b')
+    ax1.set_ylim(y_lim)
+    ax1.set_xlabel(x_label)
+
+    for tl in ax1.get_yticklabels():
+        tl.set_color('b')
+
+    plt.title(title)
+    plt.show()
+    
+def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=()):
     fig, ax1 = plt.subplots()
     ax1.plot(s1, 'b')
     ax1.set_ylabel(s1_title, color='b')
     ax1.set_xlabel(x_label)
-    ax1.set_ylim(range)
+    ax1.set_ylim(y_lim)
     for tl in ax1.get_yticklabels():
         tl.set_color('b')
 
@@ -43,7 +87,7 @@ def plot_two_series(s1, s2, s1_title='', s2_title='', x_label='', title='', rang
     ax2 = ax1.twinx()
     ax2.plot(s2, 'g')
     ax2.set_ylabel(s2_title, color='g')
-    ax2.set_ylim(range)
+    ax2.set_ylim(y_lim)
     for tl in ax2.get_yticklabels():
         tl.set_color('g')
     format_axis_labels_with_commas(ax2.get_yaxis())
@@ -497,9 +541,27 @@ def cew(cashflows):
 def constant_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
     return itertools.repeat(AnnualChange(year = 0, stocks = stocks, bonds = bonds, inflation = inflation))
 def nirp_returns():
-    return constant_returns(stocks=Decimal('.02'), bonds=Decimal('0'), inflation=Decimal('.02'))
+    return constant_returns(stocks=Decimal('.02'), bonds=Decimal('-.01'), inflation=Decimal('.02'))
 def zirp_returns():
     return constant_returns(stocks=Decimal('.04'), bonds=Decimal('0'), inflation=Decimal('.02'))
+    
+def compare_prime_vs_rebalancing(series, years=30, title=''):
+    (r1, r2) = itertools.tee(series)
+    x = simulate_withdrawals(r1, years=years)
+    y = simulate_withdrawals(r2, years=years, harvesting=N_60_RebalanceHarvesting)
+
+    s1 = [n.withdraw_r for n in x]
+    s2 = [n.withdraw_r for n in y]
+    
+    ceiling = max(max(s1), max(s2))
+    if ceiling < 100000:
+        ceiling = int(math.ceil(ceiling / 10000) * 10000)
+    else:
+        ceiling = int(math.ceil(ceiling / 100000) * 100000)
+    
+    plot_two(s1, s2, s1_title='Prime Harvesting', s2_title='Annual Rebalancing',
+                       y_lim=[0,ceiling],
+                       x_label='Year of Retirement', title=title)
 
 def big_drop(after=10):
     # 20 years of ZIRP to exhaust bonds under Prime Harvesting
