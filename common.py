@@ -5,9 +5,52 @@ import pandas
 import collections
 from decimal import *
 
+# Set graph styling to common styles
+from matplotlib import pyplot as plt
+import matplotlib
+import seaborn as sns
+plt.style.use('seaborn-poster')
+matplotlib.rcParams['font.family'] = 'League Spartan'
+
+# So I don't have to keep looking up how to do this...
+def f_int(x):
+    return format(int(x), ',')
+# some matplotlib functions pass in a position, which we don't need
+def mf_int(x, pos):
+    return f_int(x)
+def format_axis_labels_with_commas(axis):
+    axis.set_major_formatter(matplotlib.ticker.FuncFormatter(mf_int))
+def format_plt_labels_with_commas(plt):
+    # I have no idea what the 111 magic number is. It was in a quora post and seems to work.
+    axis = plt.get_subplot(111)
+    format_axis_labels_with_commas(axis)
+
 # Don't raise exception when we divide by zero
 setcontext(ExtendedContext)
 #getcontext().prec = 5
+
+def plot_two_series(s1, s2, s1_title='', s2_title='', x_label='', title='', range=()):
+    fig, ax1 = plt.subplots()
+    ax1.plot(s1, 'b')
+    ax1.set_ylabel(s1_title, color='b')
+    ax1.set_xlabel(x_label)
+    ax1.set_ylim(range)
+    for tl in ax1.get_yticklabels():
+        tl.set_color('b')
+
+    format_axis_labels_with_commas(ax1.get_yaxis())
+
+    ax2 = ax1.twinx()
+    ax2.plot(s2, 'g')
+    ax2.set_ylabel(s2_title, color='g')
+    ax2.set_ylim(range)
+    for tl in ax2.get_yticklabels():
+        tl.set_color('g')
+    format_axis_labels_with_commas(ax2.get_yaxis())
+    
+    plt.xlabel(x_label)
+    plt.title(title)
+    plt.show()
 
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
@@ -17,21 +60,23 @@ class WithdrawalStrategy():
         self.portfolio = portfolio
         self.harvest = harvest_strategy
         self.cumulative_inflation = Decimal('1.0')
-        
+
     def withdrawals(self):
         pass
-    
+
 class HarvestingStrategy():
     def harvest(self, annual_harvest):
-        '''           
+        '''
            This is must be a co-routine .send(AnnualHarvest) every year
         '''
         assert isinstance(annual_harvest, AnnualHarvest)
 
-class RebalanceHarvesting(HarvestingStrategy):
-    def __init__(self, portfolio, stock_pct=Decimal('.5')):
+class N_RebalanceHarvesting(HarvestingStrategy):
+    # subclasses must override this
+    stock_pct = None
+
+    def __init__(self, portfolio):
         self.portfolio = portfolio
-        self.stock_pct = stock_pct
 
     def harvest(self):
         amount = yield
@@ -39,22 +84,27 @@ class RebalanceHarvesting(HarvestingStrategy):
             # first generate some cash
             self.portfolio.sell_stocks(self.portfolio.stocks)
             self.portfolio.sell_bonds(self.portfolio.bonds)
-            
+
             new_val = self.portfolio.value - amount
             self.portfolio.buy_stocks(new_val * self.stock_pct)
             self.portfolio.buy_bonds(self.portfolio.cash - amount)
 
             amount = yield self.portfolio.empty_cash()
-            
+
+class N_50_RebalanceHarvesting(N_RebalanceHarvesting):
+    stock_pct = Decimal('.5')
+class N_60_RebalanceHarvesting(N_RebalanceHarvesting):
+    stock_pct = Decimal('.6')
+
 class PrimeHarvesting(HarvestingStrategy):
     _stock_ceiling = Decimal('1.2')
-    
+
     def __init__(self, portfolio):
         self.portfolio = portfolio
 
     def stock_increase(self):
         return self.portfolio.stocks / self.portfolio.starting_stocks_real
-          
+
     def harvest(self):
         amount = yield
         while True:
@@ -65,21 +115,21 @@ class PrimeHarvesting(HarvestingStrategy):
 
             bond_amount = min(amount, self.portfolio.bonds)
             self.portfolio.sell_bonds(bond_amount)
-            
+
             if self.portfolio.cash < amount:
                 remainder = amount - self.portfolio.cash
                 stock_amount = min(remainder, self.portfolio.stocks)
                 self.portfolio.sell_stocks(stock_amount)
-            
+
             amount = yield self.portfolio.empty_cash()
-        
+
 class ConstantWithdrawals(WithdrawalStrategy):
     def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.05')):
         super().__init__(portfolio, harvest_strategy)
 
         self.rate = rate
         self.initial_withdrawal = portfolio.value * rate
-        
+
     def withdrawals(self):
         change = yield
         while True:
@@ -88,7 +138,7 @@ class ConstantWithdrawals(WithdrawalStrategy):
             gains = (self.portfolio.value - previous_portfolio_amount) / previous_portfolio_amount
 
             self.cumulative_inflation *= (1 + change.inflation)
-            
+
             withdrawal = self.initial_withdrawal * self.cumulative_inflation
             actual_withdrawal = self.harvest.send(withdrawal)
 
@@ -97,7 +147,7 @@ class ConstantWithdrawals(WithdrawalStrategy):
 
 def get_extended_mufp(years_left):
     assert years_left > 0
-    
+
     if years_left > 50:
         return Decimal('5.1')
     else:
@@ -157,11 +207,11 @@ extended_mufp_table = [
     Decimal('5.1'),
     Decimal('5.1')
     ]
-       
+
 class EM(WithdrawalStrategy):
     def __init__(self, portfolio, harvest_strategy, scale_rate=Decimal('.95'), floor_rate=Decimal('.025'), cap_rate=Decimal('1.5'), years_left=40):
         super().__init__(portfolio, harvest_strategy)
-        
+
         self.scale_rate = scale_rate
         self.floor_rate = floor_rate
         self.cap_rate = cap_rate
@@ -169,7 +219,7 @@ class EM(WithdrawalStrategy):
         self.years_left = years_left
         self.initial_withdrawal = get_extended_mufp(years_left) * portfolio.value
         #print('%d %d' % (self.initial_withdrawal, self.initial_withdrawal * cap_rate))
-        
+
     def withdrawals(self):
         change = yield
         while True:
@@ -178,7 +228,7 @@ class EM(WithdrawalStrategy):
 
             withdrawal_rate = get_extended_mufp(self.years_left)
             withdrawal = withdrawal_rate * self.portfolio.value
-            
+
             scale_boundary = Decimal('.75') * (self.initial_withdrawal * self.cumulative_inflation)
             if withdrawal > scale_boundary:
                 scale_diff = withdrawal - scale_boundary
@@ -186,17 +236,17 @@ class EM(WithdrawalStrategy):
                 if scale_ratio > 1:
                     scale_ratio = Decimal('1.0')
                 withdrawal = scale_boundary + (scale_diff * scale_ratio * self.scale_rate)
-                
+
             cap_amount = self.cap_rate * self.initial_withdrawal * self.cumulative_inflation
             if withdrawal > cap_amount:
                 #print('Exceeded cap')
                 withdrawal = cap_amount
-                
+
             floor_amount = self.floor_rate * self.initial_withdrawal * self.cumulative_inflation
             if withdrawal < floor_amount:
                 #print('Exceeded floor')
                 withdrawal = floor_amount
- 
+
             actual_withdrawal = self.harvest.send(withdrawal)
             self.years_left -= 1
             change = yield report(self.portfolio, actual_withdrawal, gains)
@@ -215,7 +265,7 @@ class SensibleWithdrawals(WithdrawalStrategy):
 
     def withdrawals(self):
         change = yield
-        while True:            
+        while True:
             # portfolio growth
             previous_portfolio_amount = self.portfolio.value
             self.portfolio.adjust_returns(change)
@@ -230,12 +280,12 @@ class SensibleWithdrawals(WithdrawalStrategy):
             base_portfolio_value = self.portfolio.value - current_withdrawal_amount
             previous_portfolio_amount *= (1 + change.inflation)
             extra_return = base_portfolio_value - previous_portfolio_amount
-            
+
             if extra_return > 0:
                 current_withdrawal_amount += extra_return * self.extra_return_boost
-      
+
             current_withdrawal_amount = min(current_withdrawal_amount, self.portfolio.value)
-        
+
             self.harvest.harvest(current_withdrawal_amount)
 
             change = yield YearlyResults(withdraw_n = current_withdrawal_amount,
@@ -250,7 +300,7 @@ class SensibleWithdrawals(WithdrawalStrategy):
 AnnualChange = collections.namedtuple('AnnualChange', ['year', 'stocks', 'bonds', 'inflation'])
 AnnualHarvest = collections.namedtuple('AnnualHarvest', ['change', 'withdrawal'])
 
-YearlyResults = collections.namedtuple('YearlyResults', 
+YearlyResults = collections.namedtuple('YearlyResults',
     ['returns',
      'withdraw_n', 'withdraw_r', 'withdraw_pct_cur', 'withdraw_pct_orig',
      'portfolio_n', 'portfolio_r', 'portfolio_bonds', 'portfolio_stocks'])
@@ -260,7 +310,7 @@ def report(portfolio, withdrawal, current_gains):
         returns = current_gains,
         withdraw_n = withdrawal,
         withdraw_r = withdrawal / portfolio.inflation,
-        
+
         withdraw_pct_cur = withdrawal / portfolio.value,
         withdraw_pct_orig = (withdrawal / portfolio.inflation) / portfolio.starting_value,
 
@@ -286,15 +336,15 @@ class Portfolio():
     @property
     def starting_stocks_real(self):
         return self._starting_stocks * self.inflation
-    
+
     @property
     def starting_value_real(self):
         return self.starting_value * self.inflation
-    
+
     @property
     def starting_value(self):
         return self._starting_value
-    
+
     @property
     def stocks(self):
         return self._stocks
@@ -310,45 +360,45 @@ class Portfolio():
     @property
     def value(self):
         return self.bonds + self.stocks + self.cash
-    
+
     @property
     def real_value(self):
         return self.value / self.inflation
-    
+
     def withdraw_cash(self, amount):
         assert amount <= self._cash
         self._cash -= amount
         return self.cash
-    
+
     def empty_cash(self):
         x = self.cash
         self._cash = 0
         return x
-        
+
     def sell_stocks(self, amount):
         assert amount <= self._stocks
         self._stocks -= amount
         self._cash += amount
         return self.cash
-        
+
     def buy_stocks(self, amount):
         assert amount <= self._cash
         self._stocks += amount
         self._cash -= amount
         return self.cash
-        
+
     def sell_bonds(self, amount):
         assert amount <= self._bonds
         self._bonds -= amount
         self._cash += amount
         return self.cash
-        
+
     def buy_bonds(self, amount):
         assert amount <= self._cash
         self._bonds += amount
         self._cash -= amount
         return self.cash
-    
+
     def adjust_returns(self, change):
         assert isinstance(change, AnnualChange)
         prev_value = self.value
@@ -357,10 +407,10 @@ class Portfolio():
         self.inflation *= (1 + change.inflation)
         gains = (self.value - prev_value) / prev_value
         return (gains, prev_value, self.value)
- 
+
 def hreff(withdrawals, returns):
     ''' Harvesting-Rate Efficiency (HREFF)
-    
+
     HREFF is defined in Living Off Your Money (2016) by McClusky. It is a variant
     of WER with the addition of a withdrawal floor and penalties when annual
     withdrawals go below that.
@@ -368,40 +418,40 @@ def hreff(withdrawals, returns):
     def cew_floor(cashflows, floor=Decimal('0.03')):
         gamma = Decimal('5.0')
         epsilon = 30
-        
+
         def f(x):
             if x <= floor:
                 return x - floor
             else:
-                return x - (floor / 
-                            ( 1 + 
+                return x - (floor /
+                            ( 1 +
                              ( epsilon * pow((x - floor), 3))))
 
 
         def sigma(c):
             return pow(f(c), 1/gamma)
-    
+
         constant_factor = 1.0 / len(cashflows)
         base = constant_factor * sum(map(sigma, cashflows))
         return pow(base, gamma)
-    
+
     return n(withdrawals) / ssr(returns)
-   
+
 def wer(withdrawals, returns):
     ''' Withdrawal Efficiency Rate
-    
+
         Given a list-liek of withdrawals and a list-like of actual returns over that same
         period, calculate how 'efficient' the withdrawals were.
-        
+
         This is done by calculating the Sustainable
 
         Described in Optimal Withdrawal Strategy for Retirement Income Portfolios (2012)
         by Blanchett, Kowara, Chen
         https://corporate.morningstar.com/us/documents/ResearchPapers/OptimalWithdrawalStrategyRetirementIncomePortfolios.pdf
     '''
-    
+
     return cew(withdrawals) / ssr(returns)
-    
+
 
 def ssr(r):
     ''' Sustainable Spending Rate given a known sequence of returns
@@ -433,19 +483,112 @@ def cew(cashflows):
     '''
 
     # chosen somewhat arbitrarily by Blanchett et al point out that
-    # the final results aren't very sensitive to this number (i.e. changing it to 
+    # the final results aren't very sensitive to this number (i.e. changing it to
     # 2 doesn't affect the final numbers very much)
     gamma = Decimal('4.0')
-    
+
     def sigma(c):
         return pow(c, -gamma) / gamma
-    
+
     constant_factor = 1.0 / len(cashflows) * gamma
     base = constant_factor * sum(map(sigma, cashflows))
     return pow(base, -1/gamma)
 
-def low_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
+def constant_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
     return itertools.repeat(AnnualChange(year = 0, stocks = stocks, bonds = bonds, inflation = inflation))
+def nirp_returns():
+    return constant_returns(stocks=Decimal('.02'), bonds=Decimal('0'), inflation=Decimal('.02'))
+def zirp_returns():
+    return constant_returns(stocks=Decimal('.04'), bonds=Decimal('0'), inflation=Decimal('.02'))
+
+def big_drop(after=10):
+    # 20 years of ZIRP to exhaust bonds under Prime Harvesting
+    for i in range(after):
+        yield AnnualChange(year=0, stocks=Decimal('.04'), bonds=Decimal('0'), inflation=Decimal('.02'))
+
+    # big drop of stocks to allow rebalacing to "buy stocks cheap"
+    yield AnnualChange(year=0, stocks=Decimal('-.25'), bonds=Decimal('0'), inflation=Decimal('.02'))
+
+    # now we just have normal (but not amazing) returns.....
+    while True:
+        yield AnnualChange(year=0, stocks=Decimal('.08'), bonds=Decimal('.04'), inflation=Decimal('.03'))
+
+def simulate_withdrawals(series,
+                            portfolio=(600000, 400000),
+                            years=40,
+                            harvesting=PrimeHarvesting,
+                            withdraw=EM):
+    portfolio = Portfolio(portfolio[0], portfolio[1])
+    strategy = harvesting(portfolio).harvest()
+    strategy.send(None)
+    withdrawal_strategy = withdraw(portfolio, strategy).withdrawals()
+    withdrawal_strategy.send(None)
+    annual = []
+    for _, d in zip(range(years), series):
+        data = withdrawal_strategy.send(d)
+        annual.append(data)
+    return annual
+
+# Numbers from http://www.wsj.com/articles/how-to-think-about-risk-in-retirement-1417408070
+# Withdraw 50,000 the first 5 years and then 21,700 thereafter
+# the Risk Portfolio is all stock
+# the LMP is TIPS/corporate bonds (Bernstein assumes 1% real returns)
+def simulate_lmp(series, portfolio=(750000,250000), years=40, lmp_real_annual=Decimal('.01')):
+    count = 0
+    annual = []
+    cumulative_inflation = 1
+
+    lmp = portfolio[0]
+    rp = portfolio[1]
+
+    for (year, stocks, bonds, inflation) in series:
+        if count > years:
+            break
+
+        if count < 5:
+            amount = 50000
+        else:
+            amount = 21700
+
+        cumulative_inflation *= (1 + inflation)
+
+        amount *= cumulative_inflation
+
+        previous_portfolio_amount = rp + lmp
+        rp *= (1 + stocks)
+        lmp_gains = lmp_real_annual + inflation
+        lmp *= (1 + lmp_gains)
+
+        gains = (rp + lmp) - previous_portfolio_amount
+
+        if amount < lmp:
+            lmp -= amount
+        else:
+            a1 = amount - lmp
+            lmp = 0
+            if rp > a1:
+                rp -= a1
+            else:
+                amount = rp
+                rp = 0
+
+        annual.append(YearlyResults(
+            returns = gains,
+            withdraw_n = amount,
+            withdraw_r = amount / cumulative_inflation,
+
+            withdraw_pct_cur = amount / (rp + lmp),
+            withdraw_pct_orig = (amount / cumulative_inflation) / (portfolio[0] + portfolio[1]),
+
+            portfolio_n = rp + lmp,
+            portfolio_r = (rp + lmp) / cumulative_inflation,
+
+            portfolio_bonds = lmp,
+            portfolio_stocks = rp
+        ))
+
+        count += 1
+    return annual
 
 class Returns_US_1871:
     def __init__(self, wrap=False):
@@ -459,7 +602,7 @@ class Returns_US_1871:
 
     def __iter__(self):
         return self.iter_from(0)
-    
+
     def get_year(self, index):
         return self.dataframe.iloc[index]['Year']
 
