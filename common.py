@@ -9,15 +9,12 @@ from withdrawal import *
 from plot import *
 from simulate import *
 
+import math
+
 from decimal import setcontext, ExtendedContext
 # Don't raise exception when we divide by zero
 setcontext(ExtendedContext)
 #getcontext().prec = 5
-
-import operator
-import functools
-def prod(x):
-    return functools.reduce(operator.mul, x, 1)
 
 def extract_living(list_of_yearly_results):
     ''' This provides a list of results to compare to the tables in the book Living Off Your Money'''

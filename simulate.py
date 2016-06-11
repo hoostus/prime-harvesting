@@ -1,5 +1,6 @@
 from harvesting import PrimeHarvesting
 from withdrawal import EM
+from portfolio import Portfolio
 from decimal import Decimal
 from adt import YearlyResults
 

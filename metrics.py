@@ -1,4 +1,9 @@
 from decimal import Decimal
+import operator
+import functools
+
+def prod(x):
+    return functools.reduce(operator.mul, x, 1)
 
 def hreff(withdrawals, returns):
     ''' Harvesting-Rate Efficiency (HREFF)

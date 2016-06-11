@@ -1,6 +1,9 @@
 from decimal import Decimal
 import itertools
+import pandas
+
 from adt import AnnualChange
+
 
 def constant_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
     return itertools.repeat(AnnualChange(year = 0, stocks = stocks, bonds = bonds, inflation = inflation))

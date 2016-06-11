@@ -1,4 +1,5 @@
 from decimal import Decimal
+from adt import AnnualChange
 
 class Portfolio():
     def __init__(self, stocks, bonds, cash = 0):
