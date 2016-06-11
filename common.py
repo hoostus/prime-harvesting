@@ -1,3 +1,4 @@
+# For backwards compatibility...need to eventually get rid of this
 from adt import *
 from vpw import *
 from market import *
@@ -15,10 +16,6 @@ from decimal import setcontext, ExtendedContext
 # Don't raise exception when we divide by zero
 setcontext(ExtendedContext)
 #getcontext().prec = 5
-
-def extract_living(list_of_yearly_results):
-    ''' This provides a list of results to compare to the tables in the book Living Off Your Money'''
-    return list(map(lambda x: x.withdraw_pct_orig, list_of_yearly_results))
 
 def compare_prime_vs_rebalancing(series, years=30, title=''):
     (r1, r2) = itertools.tee(series)
