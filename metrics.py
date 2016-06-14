@@ -77,6 +77,13 @@ def cew(cashflows):
     Described in Optimal Withdrawal Strategy for Retirement Income Portfolios (2012)
     by Blanchett, Kowara, Chen
     https://corporate.morningstar.com/us/documents/ResearchPapers/OptimalWithdrawalStrategyRetirementIncomePortfolios.pdf
+
+    From a forum discussion (https://www.bogleheads.org/forum/viewtopic.php?f=10&t=120430&start=600#p2940181):
+
+    "Economists seem divided on what is a fair value to use for the coefficient of relative risk aversion.
+    Based on my readings many seem to think it is the range 1 to 3 based on people's attitudes towards risk,
+    however there are some who look at the asset allocation decisions people actually make that claim it must
+    be 10 or more as a result."
     '''
 
     # chosen somewhat arbitrarily by Blanchett et al point out that
