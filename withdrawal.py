@@ -88,13 +88,14 @@ class EM(WithdrawalStrategy):
                         floor_rate=DEFAULT_FLOOR_RATE,
                         cap_rate=DEFAULT_CAP_RATE,
                         initial_withdrawal_rate=DEFAULT_INITIAL_WITHDRAWAL_RATE):
+        adjusted_cap_rate = cap_rate * initial_withdrawal_rate
         # first year
         withdrawal = initial_withdrawal_rate * portfolio_value
         inflation_adjusted_withdrawal_amount = withdrawal
         (portfolio_value, inflation) = yield withdrawal
 
         while True:
-            inflation_adjusted_withdrawal_amount = withdrawal * (1 + inflation)
+            inflation_adjusted_withdrawal_amount = inflation_adjusted_withdrawal_amount * (1 + inflation)
 
             withdrawal_rate = get_extended_mufp(years_left)
             withdrawal = withdrawal_rate * portfolio_value
@@ -107,7 +108,7 @@ class EM(WithdrawalStrategy):
                     scale_ratio = Decimal('1.0')
                 withdrawal = scale_boundary + (scale_diff * scale_ratio * scale_rate)
 
-            cap_amount = (cap_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
+            cap_amount = (adjusted_cap_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
             withdrawal = min(withdrawal, cap_amount)
 
             floor_amount = (floor_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
