@@ -14,7 +14,7 @@ def report(portfolio, withdrawal, current_gains):
         withdraw_n = withdrawal,
         withdraw_r = withdrawal / portfolio.inflation,
 
-        withdraw_pct_cur = withdrawal / portfolio.value,
+        withdraw_pct_cur = withdrawal / (portfolio.value + withdrawal),
         withdraw_pct_orig = (withdrawal / portfolio.inflation) / portfolio.starting_value,
 
         portfolio_n = portfolio.value,
