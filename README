@@ -1,3 +1,13 @@
+QUICKSTART
+==========
+
+ $ virtualenv .
+ $ bin/pip install --requirement requirements.txt
+ $ bin/jupyter-notebook
+
+DATA SOURCES
+============
+
 1871_returns.csv comes from Simba's backtesting spreadsheet on bogleheads
 2004-period-life-table.csv comes from the 2004 IRS period life table
 
