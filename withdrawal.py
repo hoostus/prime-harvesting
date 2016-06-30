@@ -3,6 +3,12 @@ from adt import report, AnnualChange
 from mufp import get_extended_mufp
 from vpw import vpw_rates
 
+# Things I don't like...
+# - Lots of repeated logic
+# - The initial withdrawal
+# - Adjusting portfolio gains
+# - The overall looping logic
+
 class WithdrawalStrategy():
     def __init__(self, portfolio, harvest_strategy):
         self.portfolio = portfolio
@@ -13,17 +19,19 @@ class WithdrawalStrategy():
         pass
 
 
-# TODO: this class needs to be updated to work like VPW and EM in the
-# new style.
 class ConstantWithdrawals(WithdrawalStrategy):
-    def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.05')):
+    def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.04')):
         super().__init__(portfolio, harvest_strategy)
 
         self.rate = rate
         self.initial_withdrawal = portfolio.value * rate
 
     def withdrawals(self):
-        change = yield
+        withdrawal = self.portfolio.value * self.rate
+        actual_withdrawal = self.harvest.send(withdrawal)
+        change = yield report(self.portfolio, actual_withdrawal, None)
+        assert isinstance(change, AnnualChange)
+
         while True:
             previous_portfolio_amount = self.portfolio.value
             self.portfolio.adjust_returns(change)
@@ -33,10 +41,9 @@ class ConstantWithdrawals(WithdrawalStrategy):
 
             withdrawal = self.initial_withdrawal * self.cumulative_inflation
             actual_withdrawal = self.harvest.send(withdrawal)
-
+            
             change = yield report(self.portfolio, actual_withdrawal, gains)
             assert isinstance(change, AnnualChange)
-
 
 class VPW(WithdrawalStrategy):
     def calc_withdrawal(portfolio_value, year):
@@ -62,6 +69,74 @@ class VPW(WithdrawalStrategy):
             assert isinstance(change, AnnualChange)
 
             index += 1
+            
+# This one is super-simple...just take a constant percentage every
+# year. Don't try to index for inflation. So it will vary as the portfolio
+# value varies...
+class ConstantPercentage(WithdrawalStrategy):
+    def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.04')):
+        super().__init__(portfolio, harvest_strategy)
+
+        self.rate = rate
+
+    def withdrawals(self):
+        withdrawal = self.portfolio.value * self.rate
+        actual_withdrawal = self.harvest.send(withdrawal)
+        change = yield report(self.portfolio, actual_withdrawal, None)
+        assert isinstance(change, AnnualChange)
+
+        while True:
+            previous_portfolio_amount = self.portfolio.value
+            self.portfolio.adjust_returns(change)
+            gains = (self.portfolio.value - previous_portfolio_amount) / previous_portfolio_amount
+
+            withdrawal = self.portfolio.value * self.rate
+            actual_withdrawal = self.harvest.send(withdrawal)
+            change = yield report(self.portfolio, actual_withdrawal, gains)
+            assert isinstance(change, AnnualChange)
+
+
+class InvertedWithdrawals(WithdrawalStrategy):
+    """ Based on "Inverted Withdrawal Rates and the Sequence of Returns Bonus" (Walton, 2016)
+    published in Advistor Perspectives[1]
+    
+    [1]: https://www.mendeley.com/viewer/?fileId=72897973-b53f-d335-4d49-e46159445e8f&documentId=8c71b8a2-8422-3612-8b24-ecac0c7e2019
+    """
+    def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.04'), tilt=Decimal('.01')):
+        super().__init__(portfolio, harvest_strategy)
+
+        self.rate = rate
+        self.tilt = tilt
+        self.starting_portfolio_value = portfolio.value
+
+    def withdrawals(self): 
+        # we start out with the default withdrawal rate.
+        # n.b. that this is the ONLY time it is used. Every other
+        # time we will use a tilt because we will either be above or
+        # below this value
+        withdrawal = self.portfolio.value * self.rate
+        actual_withdrawal = self.harvest.send(withdrawal)
+        change = yield report(self.portfolio, actual_withdrawal, None)
+        assert isinstance(change, AnnualChange)
+
+        while True:
+            previous_portfolio_amount = self.portfolio.value
+            self.portfolio.adjust_returns(change)
+            gains = (self.portfolio.value - previous_portfolio_amount) / previous_portfolio_amount
+
+            self.cumulative_inflation *= (1 + change.inflation)
+
+            # Figure out which tilt we used based on the current (inflation-adjusted)
+            # portfolio value
+            if (self.portfolio.value / self.cumulative_inflation) < self.starting_portfolio_value:
+                withdrawal = self.portfolio.value * (self.rate - self.tilt)
+            else:
+                withdrawal = self.portfolio.value * (self.rate + self.tilt)
+
+            actual_withdrawal = self.harvest.send(withdrawal)
+            
+            change = yield report(self.portfolio, actual_withdrawal, gains)
+            assert isinstance(change, AnnualChange)
 
 class EM(WithdrawalStrategy):
     DEFAULT_SCALE_RATE = Decimal('.95')
