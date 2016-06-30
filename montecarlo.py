@@ -45,3 +45,9 @@ conservative = {
     90: LogNormalReturns(.0564, .1927),
     100:LogNormalReturns(.0588, .2115)
 }
+
+# From "Inverted Withdrawals and the Sequence of Returns Bonus" (Walton 2016) he quotes numbers
+# from Research Associates
+RA_high_vol = LogNormalReturns(.059, .13)
+RA_medium_vol = LogNormalReturns(.049, .10)
+RA_low_vol = LogNormalReturns(.033, .065)
