@@ -14,7 +14,7 @@ import math
 
 from decimal import setcontext, ExtendedContext
 # Don't raise exception when we divide by zero
-setcontext(ExtendedContext)
+#setcontext(ExtendedContext)
 #getcontext().prec = 5
 
 def compare_prime_vs_rebalancing(series, years=30, title=''):
