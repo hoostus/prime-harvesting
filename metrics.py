@@ -1,6 +1,11 @@
 from decimal import Decimal
 import operator
 import functools
+import numpy
+
+# numpy can't handle Decimal so we have this helper function
+def average(xs):
+    return numpy.average([float(x) for x in xs])
 
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
