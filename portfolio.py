@@ -42,6 +42,11 @@ class Portfolio():
     def real_value(self):
         return self.value / self.inflation
 
+    def deposit_cash(self, amount):
+        assert amount >= 0 # use withdraw_cash() instead of withdrawals
+        self._cash += amount
+        return self.cash
+
     def withdraw_cash(self, amount):
         assert amount <= self._cash
         self._cash -= amount
