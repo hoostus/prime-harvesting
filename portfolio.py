@@ -47,6 +47,10 @@ class Portfolio():
         self._cash -= amount
         return self.cash
 
+    def deposit_cash(self, amount):
+        self._cash += amount
+        return self.cash
+
     def empty_cash(self):
         x = self.cash
         self._cash = 0
@@ -82,5 +86,8 @@ class Portfolio():
         self._bonds *= 1 + change.bonds
         self._stocks *= 1 + change.stocks
         self.inflation *= (1 + change.inflation)
-        gains = (self.value - prev_value) / prev_value
+        if prev_value != 0:
+            gains = (self.value - prev_value) / prev_value
+        else:
+            gains = 0
         return (gains, prev_value, self.value)
