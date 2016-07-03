@@ -47,11 +47,12 @@ def annotate_biggest(axis, s, location=None):
 
     annotate(axis, y, (x, y), location)
 
-def plot(s, x_label='', y_label='', y_lim=(), title=''):
+def plot(s, x_label='', y_label='', y_lim=None, title=''):
     fig, ax1 = plt.subplots()
     ax1.plot(s, 'b')
     ax1.set_ylabel(y_label, color='b')
-    ax1.set_ylim(y_lim)
+    if y_lim:
+        ax1.set_ylim(y_lim)
     ax1.set_xlabel(x_label)
 
     for tl in ax1.get_yticklabels():
@@ -60,12 +61,13 @@ def plot(s, x_label='', y_label='', y_lim=(), title=''):
     plt.title(title)
     plt.show()
 
-def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=()):
+def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=None):
     fig, ax1 = plt.subplots()
     ax1.plot(s1, 'b')
     ax1.set_ylabel(s1_title, color='b')
     ax1.set_xlabel(x_label)
-    ax1.set_ylim(y_lim)
+    if y_lim:
+        ax1.set_ylim(y_lim)
     for tl in ax1.get_yticklabels():
         tl.set_color('b')
 
@@ -74,7 +76,8 @@ def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=()):
     ax2 = ax1.twinx()
     ax2.plot(s2, 'g')
     ax2.set_ylabel(s2_title, color='g')
-    ax2.set_ylim(y_lim)
+    if y_lim:
+        ax2.set_ylim(y_lim)
     for tl in ax2.get_yticklabels():
         tl.set_color('g')
     format_axis_labels_with_commas(ax2.get_yaxis())
