@@ -3,6 +3,14 @@ inspired by Michael McClung's book [Living Off Your Money].
 
 [Living Off Your Money]: https://www.amazon.com/Living-Off-Your-Money-Retirement/dp/0997403411
 
+QUICKSTART
+==========
+
+ $ virtualenv .
+ $ bin/pip install --requirement requirements.txt
+ $ bin/jupyter-notebook
+
+
 JUPYTER NOTEBOOKS
 =================
 - [Prime Harvesting][1]. The one that started the project. A comparison of Prime Harvesting and
