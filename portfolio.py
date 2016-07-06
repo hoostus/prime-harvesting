@@ -8,6 +8,7 @@ class Portfolio():
         self._cash = Decimal(cash)
         self._starting_value = Decimal(stocks + bonds + cash)
         self._starting_stocks = Decimal(stocks)
+        self._stocks_real_gain = Decimal('1.0')
         self.inflation = Decimal('1.0')
 
     @property
@@ -21,6 +22,10 @@ class Portfolio():
     @property
     def starting_value(self):
         return self._starting_value
+
+    @property
+    def stocks_real_gain(self):
+        return self._stocks_real_gain
 
     @property
     def stocks(self):
@@ -41,6 +46,11 @@ class Portfolio():
     @property
     def real_value(self):
         return self.value / self.inflation
+
+    def deposit_cash(self, amount):
+        assert amount >= 0 # use withdraw_cash() instead of withdrawals
+        self._cash += amount
+        return self.cash
 
     def withdraw_cash(self, amount):
         assert amount <= self._cash
@@ -85,9 +95,13 @@ class Portfolio():
         prev_value = self.value
         self._bonds *= 1 + change.bonds
         self._stocks *= 1 + change.stocks
+        self._stocks_real_gain *= 1 + (change.stocks - change.inflation)
         self.inflation *= (1 + change.inflation)
         if prev_value != 0:
             gains = (self.value - prev_value) / prev_value
         else:
-            gains = 0
+            gains = 0 # empty portfolio, no percentage gain
         return (gains, prev_value, self.value)
+
+    def reset_stocks_real_gain(self):
+        self._stocks_real_gain = Decimal('1.0')

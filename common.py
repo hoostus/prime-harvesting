@@ -5,6 +5,7 @@ from market import *
 from metrics import *
 from portfolio import *
 from mufp import *
+from accumulation import *
 from harvesting import *
 from withdrawal import *
 from plot import *

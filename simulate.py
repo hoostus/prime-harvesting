@@ -1,3 +1,4 @@
+from accumulation import N_80_RebalanceAccumulation
 from harvesting import PrimeHarvesting
 from withdrawal import EM
 from portfolio import Portfolio
@@ -85,4 +86,38 @@ def simulate_lmp(series, portfolio=(750000,250000), years=40, lmp_real_annual=De
         ))
 
         count += 1
+    return annual
+
+# Accumulation phase of saving for retirement.  Add funds to portfolio at the
+# end of every year, never withdrawing from the portfolio.  The amount added
+# each year grows with inflation.
+def simulate_accumulation(series,
+                          portfolio=(0, 0),
+                          years=35,
+                          annual_inflow=25000,
+                          accumulation=N_80_RebalanceAccumulation):
+    portfolio = Portfolio(portfolio[0], portfolio[1])
+    strategy = accumulation(portfolio).accumulate()
+    strategy.send(None)
+    annual = []
+
+    for _, change in zip(range(years), series):
+        gains, _, _ = portfolio.adjust_returns(change)
+        strategy.send(annual_inflow)
+
+        annual.append(YearlyResults(
+            returns = gains,
+            withdraw_n = 0,
+            withdraw_r = 0,
+
+            withdraw_pct_cur = 0,
+            withdraw_pct_orig = 0,
+
+            portfolio_n = portfolio.value,
+            portfolio_r = portfolio.real_value,
+            portfolio_bonds = portfolio.bonds,
+            portfolio_stocks = portfolio.stocks
+        ))
+
+        annual_inflow *= 1 + change.inflation
     return annual
