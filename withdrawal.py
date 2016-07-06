@@ -41,7 +41,7 @@ class ConstantWithdrawals(WithdrawalStrategy):
 
             withdrawal = self.initial_withdrawal * self.cumulative_inflation
             actual_withdrawal = self.harvest.send(withdrawal)
-            
+
             change = yield report(self.portfolio, actual_withdrawal, gains)
             assert isinstance(change, AnnualChange)
 
@@ -69,7 +69,7 @@ class VPW(WithdrawalStrategy):
             assert isinstance(change, AnnualChange)
 
             index += 1
-            
+
 # This one is super-simple...just take a constant percentage every
 # year. Don't try to index for inflation. So it will vary as the portfolio
 # value varies...
@@ -99,7 +99,7 @@ class ConstantPercentage(WithdrawalStrategy):
 class InvertedWithdrawals(WithdrawalStrategy):
     """ Based on "Inverted Withdrawal Rates and the Sequence of Returns Bonus" (Walton, 2016)
     published in Advistor Perspectives[1]
-    
+
     [1]: https://www.mendeley.com/viewer/?fileId=72897973-b53f-d335-4d49-e46159445e8f&documentId=8c71b8a2-8422-3612-8b24-ecac0c7e2019
     """
     def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.04'), tilt=Decimal('.01')):
@@ -109,7 +109,7 @@ class InvertedWithdrawals(WithdrawalStrategy):
         self.tilt = tilt
         self.starting_portfolio_value = portfolio.value
 
-    def withdrawals(self): 
+    def withdrawals(self):
         # we start out with the default withdrawal rate.
         # n.b. that this is the ONLY time it is used. Every other
         # time we will use a tilt because we will either be above or
@@ -134,7 +134,7 @@ class InvertedWithdrawals(WithdrawalStrategy):
                 withdrawal = self.portfolio.value * (self.rate + self.tilt)
 
             actual_withdrawal = self.harvest.send(withdrawal)
-            
+
             change = yield report(self.portfolio, actual_withdrawal, gains)
             assert isinstance(change, AnnualChange)
 

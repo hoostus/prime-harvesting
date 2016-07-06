@@ -6,6 +6,10 @@ import numpy
 # numpy can't handle Decimal so we have this helper function
 def average(xs):
     return numpy.average([float(x) for x in xs])
+def mean(xs):
+    return numpy.mean([float(x) for x in xs])
+def median(xs):
+    return numpy.median([float(x) for x in xs])
 
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
