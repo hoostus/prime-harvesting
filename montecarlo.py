@@ -51,3 +51,22 @@ conservative = {
 RA_high_vol = LogNormalReturns(.059, .13)
 RA_medium_vol = LogNormalReturns(.049, .10)
 RA_low_vol = LogNormalReturns(.033, .065)
+
+# gordoni's "weighted historical returns"
+# https://www.bogleheads.org/forum/viewtopic.php?f=10&t=193615
+weighted_historical = """
+                 arith stdev  stderr  geom
+fixed 1970-2015  7.38% 16.93% 2.50%  5.91%
+fixed 1927-2015  8.64% 19.51% 2.07%  6.78%
+fixed 1872-2015  8.41% 18.19% 1.52%  6.78%
+half-life 10     8.09% 16.28% 2.97%  6.62%
+half-life 20     8.16% 17.03% 2.20%  6.63%
+half-life 30     8.23% 17.49% 1.89%  6.66%
+half-life 40     8.28% 17.73% 1.74%  6.67%
+half-life 50     8.31% 17.86% 1.67%  6.69%
+half-life 60     8.32% 17.94% 1.63%  6.70%
+half-life 70     8.34% 17.98% 1.60%  6.71%
+half-life 80     8.35% 18.01% 1.58%  6.71%
+half-life 90     8.35% 18.03% 1.57%  6.72%
+half-life 100    8.36% 18.05% 1.56%  6.72%
+"""
