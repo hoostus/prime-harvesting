@@ -19,6 +19,7 @@ JUPYTER NOTEBOOKS
 - [Inverted Withdrawals][3]. A look at [Inverted Withdrawals][inverted] and [blog post][Medium inverted].
 - [Liability Matching Portfolio][4]. _Haven't done anything with this one yet..._
 - [Sleep Well At Night][5]. A first look at bond levels with Prime Harvesting. [Blog post][Medium averages].
+- Monthly Harvesting. The difference between checking annually and checking monthly. [Blog post][Monthly harvesting].
 
 [1]: https://github.com/hoostus/prime-harvesting/blob/master/Prime%20Harvesting.ipynb
 [2]: https://github.com/hoostus/prime-harvesting/blob/master/EM%20vs%20VPW.ipynb
@@ -29,6 +30,7 @@ JUPYTER NOTEBOOKS
 [5]: https://github.com/hoostus/prime-harvesting/blob/master/Sleep%20Well%20At%20Night.ipynb
 [Medium averages]: https://medium.com/@justusjp/prime-harvesting-bond-levels-the-problem-with-averages-7a21518b6f57#.8c7mk68y5
 [Medium prime]: https://medium.com/@justusjp/prime-harvesting-vs-rebalancing-graphs-2687930a995b#.enlcxwdny
+[Monthly harvesting]: https://medium.com/@justusjp/prime-harvesting-with-monthly-vs-annual-returns-64d6d748c36f#.yt519zjoq
 
 DATA SOURCES
 ============
@@ -67,3 +69,8 @@ years left alive?
 - Probability of failure and SIZE of failure might be different. You might
 choose the plan with the higher probability of failure because the size of
 failure is smaller.
+- Try to tie together Prime Harvesting and valuations better.
+- Implement the autoregressive model for returns from Blanchett, Finke, Pfau in
+"Low Bond Yields and Safe Portfolio Withdrawal Rates"
+- My WER calculations always seem very far off.
+- Implement Blanchett's formula from "Simple Formulas to Implement Complex Withdrawal Strategies"
