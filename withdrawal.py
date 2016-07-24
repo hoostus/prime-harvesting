@@ -18,7 +18,6 @@ class WithdrawalStrategy():
     def withdrawals(self):
         pass
 
-
 class ConstantWithdrawals(WithdrawalStrategy):
     def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.04')):
         super().__init__(portfolio, harvest_strategy)
@@ -34,8 +33,7 @@ class ConstantWithdrawals(WithdrawalStrategy):
 
         while True:
             previous_portfolio_amount = self.portfolio.value
-            self.portfolio.adjust_returns(change)
-            gains = (self.portfolio.value - previous_portfolio_amount) / previous_portfolio_amount
+            (gains, _, _) = self.portfolio.adjust_returns(change)
 
             self.cumulative_inflation *= (1 + change.inflation)
 
