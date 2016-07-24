@@ -1,17 +1,20 @@
-from numpy.random import lognormal
+import math
+import random
 from decimal import Decimal
 from adt import AnnualChange
 
 class LogNormalReturns:
-    def __init__(self, mean, sigma):
+    def __init__(self, mean, stddev):
         self.mean = mean
-        self.sigma = sigma
+        self.stddev = stddev
 
     def random_year(self):
         ''' This is the same method name as in market.US_1871_Returns...which
         allows this to be a drop-in replacement for that when simulating data '''
-        r = lognormal(self.mean, self.sigma) - 1
+        
+        r = math.log(random.lognormvariate(self.mean, self.stddev))
         r = Decimal(r)
+
         return AnnualChange(year=0, stocks=r, bonds=r, inflation=Decimal(0))
 
 # Numbers come from Blanchett et al. (2012)
