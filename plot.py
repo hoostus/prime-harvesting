@@ -2,6 +2,8 @@
 from matplotlib import pyplot as plt
 import matplotlib
 import seaborn as sns
+
+from metrics import max
 plt.style.use('seaborn-poster')
 matplotlib.rcParams['font.family'] = 'League Spartan'
 
@@ -62,12 +64,19 @@ def plot(s, x_label='', y_label='', y_lim=None, title=''):
     plt.show()
 
 def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=None):
+    m_1 = max(s1)
+    m_2 = max(s2)
+    mm = max([m_1, m_2])
+    y_lim_default = (0, mm)
+    
     fig, ax1 = plt.subplots()
     ax1.plot(s1, 'b')
     ax1.set_ylabel(s1_title, color='b')
     ax1.set_xlabel(x_label)
     if y_lim:
         ax1.set_ylim(y_lim)
+    else:
+        ax1.set_ylim(y_lim_default)
     for tl in ax1.get_yticklabels():
         tl.set_color('b')
 
@@ -78,6 +87,9 @@ def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=None)
     ax2.set_ylabel(s2_title, color='g')
     if y_lim:
         ax2.set_ylim(y_lim)
+    else:
+        ax1.set_ylim(y_lim_default)
+
     for tl in ax2.get_yticklabels():
         tl.set_color('g')
     format_axis_labels_with_commas(ax2.get_yaxis())
