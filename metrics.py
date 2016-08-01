@@ -3,6 +3,7 @@ import operator
 import functools
 import numpy
 import builtins
+import math
 
 # numpy can't handle Decimal so we have this helper function
 def average(xs):
@@ -121,3 +122,29 @@ def cew(cashflows):
     constant_factor = Decimal('1.0') / len(cashflows) * gamma
     base = constant_factor * sum(map(sigma, cashflows))
     return pow(base, -1/gamma)
+
+def gompertz(current_age, live_to, female=True):
+    """
+    This calculates the probability of survival to age 'live_to',
+    conditional on a life at age 'current_age'. female is boolean.
+
+    This comes from Blanchett's paper Simple Formulas for
+    Complex Withdrawal Strategies.
+
+    The parameters are based on the Annuity 2000 table, calculated
+    by Blancett in his paper, which means they are biased towards healthy
+    people with extra longevity.
+    """
+
+    if female:
+        model_lifespan = 91
+        dispersion_coeff = 8.88
+    else:
+        model_lifespan = 88
+        dispersion_coeff = 10.65
+
+    q = math.exp(
+            math.exp((current_age - model_lifespan) / dispersion_coeff)
+            * (1 - math.exp((live_to - current_age) / dispersion_coeff))
+    )
+    return q

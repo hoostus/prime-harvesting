@@ -32,8 +32,10 @@ def omy(husband, wife, age, survive):
 HULSTROM = 'hultstrom-lifetable.csv'
 
 # This is *actual* 2004 life table. (I think.)
-# https://www.cdc.gov/nchs/data/nvsr/nvsr56/nvsr56_09.pdf
+# The top level index is at http://www.cdc.gov/nchs/products/life_tables.htm
 NVSS_2004 = '2004-life-table.csv'
+# And an updated 2011 version
+NVSS_2011 = '2011-life-table.csv'
 
 # The Annuity 2000 life table is different yet again. (It will give even longer
 # life spans than the 2004 life table.) The difference is because Annuity 2000
