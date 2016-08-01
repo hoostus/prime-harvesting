@@ -72,8 +72,6 @@ failure is smaller.
 - Try to tie together Prime Harvesting and valuations better.
 - Implement the autoregressive model for returns from Blanchett, Finke, Pfau in
 "Low Bond Yields and Safe Portfolio Withdrawal Rates"
-- My WER calculations always seem very far off.
-- Implement Blanchett's formula from "Simple Formulas to Implement Complex Withdrawal Strategies"
 - It would be quite interesting to see the portfolio and withdrawal trajectory of 30/70, 40/60, and maybe 50/50 (stocks/bonds) constant AA portfolios vs Prime Harvesting in both nominal and inflation-adjusted term, and look at the result with the eye of a retiree who sees nominal numbers on his bank account and mutual fund statements.
 longinvest in https://www.bogleheads.org/forum/viewtopic.php?f=10&t=192105&p=2987869#p2986911
 - Use HREFF 
