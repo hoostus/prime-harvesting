@@ -2,6 +2,7 @@ from decimal import Decimal
 from adt import report, AnnualChange
 from mufp import get_extended_mufp
 from vpw import vpw_rates
+import math
 
 # Things I don't like...
 # - Lots of repeated logic
@@ -10,13 +11,96 @@ from vpw import vpw_rates
 # - The overall looping logic
 
 class WithdrawalStrategy():
-    def __init__(self, portfolio, harvest_strategy):
+    def __init__(self, portfolio, harvest_strategy, **kwargs):
         self.portfolio = portfolio
         self.harvest = harvest_strategy
         self.cumulative_inflation = Decimal('1.0')
 
     def withdrawals(self):
         pass
+
+class SimpleFormula(WithdrawalStrategy):
+    """
+    This comes from Blanchett's 'Simple Formulas to Implement Complex Withdrawal Strategies'
+    https://www.onefpa.org/journal/Pages/Simple%20Formulas%20to%20Implement%20Complex%20Withdrawal%20Strategies.aspx
+    """
+    def __init__(self, portfolio, harvest_strategy, probability_of_success=.95, alpha=0, years=35, **kwargs):
+        super().__init__(portfolio, harvest_strategy, **kwargs)
+
+        # the target probability of success (i.e. "I want a 95% chance of succeeding")
+        self.pos = probability_of_success
+
+        # the alpha parameters allows you to include advisors fees and adjust
+        # the capital market expectations; Blanchett used 10% for equities and
+        # 4% for bonds.
+        self.alpha = alpha
+
+        # How long we expect the strategy to run for...
+        self.years = years
+
+    def rmd(self, years):
+        return Decimal(1) / years
+
+    def get_pct(self, years):
+        if years < 15:
+            # Just like with VPW, we need to add a hack to handle
+            # unexpected longevity.
+            if years < 2:
+                return Decimal('0.5')
+            else:
+                return self.rmd(years)
+        else:
+            return self.dynamic(years)
+
+    def dynamic(self, years):
+        """
+        In the paper Blanchett lists the intercept at 0.195
+        and the longevity coeff at 0.3701. But if you use those
+        numbers in his formula you get a different result than
+        what he discusses in the paper (you get a 3.17% withdrawal rate
+        instead of a 3.15% withdrawal rate for the scenario he first
+        discusses).
+
+        That confused me because I couldn't figure out why. But Blanchett
+        also provides an Excel spreadsheet which implements the formula.
+        In the spreadsheet he uses slightly different numbers for intercept
+        and longevity. The numbers below come from the spreadsheet.
+
+        Spreadsheet: http://www.davidmblanchett.com/tools
+        """
+        intercept = 0.19477105724498
+        longevity_coeff = .0370089932678766
+        equity_coeff = .01255
+        probability_coeff = .04471
+        alpha_coeff = .507
+        equity_percent = self.portfolio.stocks / self.portfolio.value
+        return Decimal(intercept
+            - (longevity_coeff * math.log(years))
+            + (equity_coeff * math.sqrt(equity_percent))
+            - (probability_coeff * self.pos)
+            + (alpha_coeff * self.alpha))
+
+    def withdrawals(self):
+        rate = self.get_pct(self.years)
+        withdrawal = rate * self.portfolio.value
+        actual_withdrawal = self.harvest.send(withdrawal)
+        self.years -= 1
+
+        change = yield report(self.portfolio, actual_withdrawal, None)
+        assert isinstance(change, AnnualChange)
+
+        while True:
+            previous_portfolio_amount = self.portfolio.value
+            (gains, _, _) = self.portfolio.adjust_returns(change)
+
+            rate = self.get_pct(self.years)
+            withdrawal = rate * self.portfolio.value
+            actual_withdrawal = self.harvest.send(withdrawal)
+            self.years -= 1
+
+            change = yield report(self.portfolio, actual_withdrawal, gains)
+            assert isinstance(change, AnnualChange)
+
 
 class ConstantWithdrawals(WithdrawalStrategy):
     def __init__(self, portfolio, harvest_strategy, rate=Decimal('0.04')):
@@ -60,7 +144,14 @@ class VPW(WithdrawalStrategy):
         while True:
             (gains, _, _) = self.portfolio.adjust_returns(change)
 
-            withdrawal = vpw_rates[index] * self.portfolio.value
+            # In order to make vanilla VPW work with unexpected longevity
+            # we need to have a bit of a hack. Instead of consuming the
+            # entire portfolio, we just always take 50% of what is left
+            # after 40 years.
+            if index < 39:
+                withdrawal = vpw_rates[index] * self.portfolio.value
+            else:
+                withdrawal = Decimal('0.5') 
             actual_withdrawal = self.harvest.send(withdrawal)
 
             change = yield report(self.portfolio, actual_withdrawal, gains)
@@ -147,8 +238,9 @@ class EM(WithdrawalStrategy):
                  floor_rate=DEFAULT_FLOOR_RATE,
                  cap_rate=DEFAULT_CAP_RATE,
                  initial_withdrawal_rate=DEFAULT_INITIAL_WITHDRAWAL_RATE,
-                 years_left=40):
-        super().__init__(portfolio, harvest_strategy)
+                 years_left=40,
+                 **kwargs):
+        super().__init__(portfolio, harvest_strategy, **kwargs)
 
         self.scale_rate = scale_rate
         self.floor_rate = floor_rate
