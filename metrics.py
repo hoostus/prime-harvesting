@@ -1,4 +1,5 @@
 from decimal import Decimal
+import decimal
 import operator
 import functools
 import numpy
@@ -20,41 +21,57 @@ def max(xs):
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
 
-def hreff(withdrawals, returns):
+def hreff(withdrawals, returns, floor=Decimal('.03')):
     ''' Harvesting-Rate Efficiency (HREFF)
 
-    HREFF is defined in Living Off Your Money (2016) by McClusky. It is a variant
+    HREFF is defined in Living Off Your Money (2016) by McClung's. It is a variant
     of WER with the addition of a withdrawal floor and penalties when annual
     withdrawals go below that.
     '''
-    def cew_floor(cashflows, floor=Decimal('0.03')):
-        gamma = Decimal('5.0')
+
+    gamma = 5
+
+    def cew_floor(cashflows):
         epsilon = 30
 
         def f(x):
             if x <= floor:
                 return x - floor
             else:
-                return x - (floor /
-                            ( 1 +
-                             ( epsilon * pow((x - floor), 3))))
+                return (x -
+                (floor /
+                    (1 +
+                        (epsilon *
+                            (x - floor) ** 3)
+                    )
+                ))
 
+        # by default, python doesn't handle negative numbers and odd-fractional
+        # exponents properly. I don't know why. Anyway, this does the right thing.
+        def nth_root(x, n):
+            return math.copysign(math.pow(abs(x), 1.0/n), x)
 
-        def sigma(c):
-            return pow(f(c), 1/gamma)
+        def sigma(x):
+            # Decimals can't do fractional powers so
+            # convert to a float, which can
+            f_x = float(f(x))
+            n = nth_root(f_x, gamma)
+            return n
 
-        constant_factor = Decimal('1.0') / len(cashflows)
-        base = constant_factor * sum(map(sigma, cashflows))
-        return pow(base, gamma)
+        x = average(map(sigma, cashflows))
+        x = pow(x, gamma)
+        return Decimal(x)/100
 
-    return cew_floor(withdrawals) / ssr(returns)
+    # The above functions expect the percentages to be expressed as 5.6 instead of 0.056
+    # so we need to convert back and forth
+    return cew_floor([w*100 for w in withdrawals]) / ssr(returns)
 
 def wer(withdrawals, returns, fudge=Decimal('.001')):
     ''' Withdrawal Efficiency Rate
 
         Given a list-like of withdrawals and a list-like of actual returns over that same
         period, calculate how 'efficient' the withdrawals were.
-        
+
         The withdrawals list is expected to be "percent of original portfolio size"
 
         If there are any zeroes in the withdrawals, then the CEW calculation blows up which throws everything
@@ -63,7 +80,7 @@ def wer(withdrawals, returns, fudge=Decimal('.001')):
         Described in Optimal Withdrawal Strategy for Retirement Income Portfolios (2012)
         by Blanchett, Kowara, Chen
         https://corporate.morningstar.com/us/documents/ResearchPapers/OptimalWithdrawalStrategyRetirementIncomePortfolios.pdf
-        
+
     '''
     c = cew([n + fudge for n in withdrawals])
     s = ssr(returns) + fudge
@@ -108,9 +125,9 @@ def cew(cashflows):
     however there are some who look at the asset allocation decisions people actually make that claim it must
     be 10 or more as a result."
     '''
-    
+
     assert 0 not in cashflows, "Having a zero in the cashflows breaks CEW. 0 found at index %d" % cashflows.index(0)
- 
+
     # chosen somewhat arbitrarily by Blanchett et al who point out that
     # the final results aren't very sensitive to this number (i.e. changing it to
     # 2 doesn't affect the final numbers very much)
