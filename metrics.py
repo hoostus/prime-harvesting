@@ -165,3 +165,28 @@ def gompertz(current_age, live_to, female=True):
             * (1 - math.exp((live_to - current_age) / dispersion_coeff))
     )
     return q
+
+def probability_of_ruin(return_mean, return_stddev, mortality_rate, withdrawal_pct):
+    """
+    Milevsky and Robinson's Stochastic Present Value from "A sustainable
+    spending rate without simulation" (2005)
+
+    real_return: the real return of the portfolio (e.g. .07)
+    std_dev: the volatility of the portfolio (e.g. .20)
+    mortality_rate: the rate of dying every year (e.g. .0247)
+
+    You can calculate an implied mortality rate by =log(2)/median_life_span.
+    For a 50-year old, assume the median life span is another 28.1 years. Then
+    the implied mortality rate =log(2)/28.1 = .0247
+    """
+    alpha = ((2 * return_mean) + (4 * mortality_rate))
+    alpha /= (return_stddev * return_stddev) + mortality_rate
+    alpha -= 1
+
+    beta = (return_stddev * return_stddev) + mortality_rate
+    beta /= 2
+
+    # given alpha = 2.690880989, beta = 0.03235, mortality_rate = 0.0247, withdrawal_pct = .05
+    # this should return 0.267590954
+    # gamma.dist(withdrawal_pct, alpha, beta)
+    # I can't figure out how to use scipy to emulate this Excel function :(
