@@ -67,25 +67,25 @@ class Portfolio():
         return x
 
     def sell_stocks(self, amount):
-        assert amount <= self._stocks
+        assert amount <= self._stocks, "amount %d stocks %d" % (amount, self._stocks)
         self._stocks -= amount
         self._cash += amount
         return self.cash
 
     def buy_stocks(self, amount):
-        assert amount <= self._cash
+        assert amount <= self._cash, "amount %d cash %d" % (amount, self._cash)
         self._stocks += amount
         self._cash -= amount
         return self.cash
 
     def sell_bonds(self, amount):
-        assert amount <= self._bonds
+        assert amount <= self._bonds, "amount %d bonds %d" % (amount, self._bonds)
         self._bonds -= amount
         self._cash += amount
         return self.cash
 
     def buy_bonds(self, amount):
-        assert amount <= self._cash
+        assert amount <= self._cash, "amount %d cash %d" % (amount, self._cash)
         self._bonds += amount
         self._cash -= amount
         return self.cash
