@@ -144,14 +144,16 @@ class VPW(WithdrawalStrategy):
         while True:
             (gains, _, _) = self.portfolio.adjust_returns(change)
 
-            # In order to make vanilla VPW work with unexpected longevity
-            # we need to have a bit of a hack. Instead of consuming the
-            # entire portfolio, we just always take 50% of what is left
-            # after 40 years.
-            if index < 39:
+            if index < len(vpw_rates):
                 withdrawal = vpw_rates[index] * self.portfolio.value
             else:
-                withdrawal = Decimal('0.5') 
+                # VPW ran out of money. You might think this is unfair to VPW.
+                # "But someone who is 98 and still alive would replan!"
+                # But other strategies aren't allowed to do ad hoc replanning
+                # (e.g. constant dollar withdrawals) when things start to look
+                # dire. Instead of adding ad hoc replanning to ONE method...
+                # we just let it fail.
+                withdrawal = 0
             actual_withdrawal = self.harvest.send(withdrawal)
 
             change = yield report(self.portfolio, actual_withdrawal, gains)
