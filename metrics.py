@@ -18,6 +18,23 @@ def min(xs):
 def max(xs):
     return builtins.max([float(x) for x in xs])
 
+# Yet another helper function to deal with float/Decimal conversion issues :(
+# I feel like I should have just used float...
+def pmt(rate, nper, pv):
+    """ We always assume a future value of $0 and withdrawals at the
+    beginning of the period. """
+
+    # We can get passed in some non-sensical numbers. This could be do
+    # to a loop that assumes a final age of 110 but the person unexpectedly
+    # live to 111. Yes, the higher level loop should handle that but....
+    if nper < 1:
+        return pv
+
+    n = -numpy.pmt(float(rate), nper, float(pv), 0, 1)
+    n = math.floor(n)
+    return Decimal(n)
+
+
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
 
