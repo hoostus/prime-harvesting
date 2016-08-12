@@ -3,6 +3,8 @@ from .abc import WithdrawalStrategy
 from . import vpw_rates
 
 class VPW(WithdrawalStrategy):
+    rates = vpw_rates.s_60_40_35
+
     def __init__(self, portfolio, harvest_strategy):
         super().__init__(portfolio, harvest_strategy)
 
@@ -19,16 +21,16 @@ class VPW(WithdrawalStrategy):
         # - Use the portfolio to look up dynamically
         # - Just implement all of VPW ourselves here instead of
         #   relying on prebaked things from the spreadsheet
-        return vpw_rates.s_60_40_35[year] * portfolio_value
+        return VPW.rates[year] * portfolio_value
 
     def start(self):
-        return VPW.calc_withdrawal(self.portfolio.value, index)
+        return VPW.calc_withdrawal(self.portfolio.value, self.index)
 
     def next(self):
-        index += 1
+        self.index += 1
 
-        if index < len(vpw_rates):
-            withdrawal = VPW.calc_withdrawal(self.portfolio.value, index)
+        if self.index < len(VPW.rates):
+            withdrawal = VPW.calc_withdrawal(self.portfolio.value, self.index)
         else:
             # VPW ran out of money. You might think this is unfair to VPW.
             # "But someone who is 98 and still alive would replan!"

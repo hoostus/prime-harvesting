@@ -1,5 +1,6 @@
 from decimal import Decimal
 from .abc import WithdrawalStrategy
+import math
 
 class SimpleFormula(WithdrawalStrategy):
     """

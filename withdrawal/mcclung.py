@@ -24,7 +24,7 @@ class EM(WithdrawalStrategy):
         self.years_left = years_left
 
     def start(self):
-        withdrawal = initial_withdrawal_rate * portfolio_value
+        withdrawal = self.initial_withdrawal_rate * self.portfolio.value
         # Store this for later because we will need it in
         # future iterations
         self.last_year_withdrawal = withdrawal
@@ -38,8 +38,8 @@ class EM(WithdrawalStrategy):
 
         inflation_adjusted_withdrawal_amount = self.last_year_withdrawal * (1 + self.current_inflation)
 
-        withdrawal_rate = get_extended_mufp(years_left)
-        withdrawal = withdrawal_rate * portfolio_value
+        withdrawal_rate = get_extended_mufp(self.years_left)
+        withdrawal = withdrawal_rate * self.portfolio.value
 
         scale_boundary = Decimal('.75') * inflation_adjusted_withdrawal_amount
         if withdrawal > scale_boundary:
@@ -47,12 +47,12 @@ class EM(WithdrawalStrategy):
             scale_ratio = scale_diff / scale_boundary
             if scale_ratio > 1:
                 scale_ratio = Decimal('1.0')
-            withdrawal = scale_boundary + (scale_diff * scale_ratio * scale_rate)
+            withdrawal = scale_boundary + (scale_diff * scale_ratio * self.scale_rate)
 
-        cap_amount = (adjusted_cap_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
+        cap_amount = (self.adjusted_cap_rate / self.initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
         withdrawal = min(withdrawal, cap_amount)
 
-        floor_amount = (floor_rate / initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
+        floor_amount = (self.floor_rate / self.initial_withdrawal_rate) * inflation_adjusted_withdrawal_amount
         withdrawal = max(withdrawal, floor_amount)
 
         return withdrawal

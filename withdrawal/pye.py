@@ -13,7 +13,7 @@ class RetrenchmentRule(WithdrawalStrategy):
         self.current_age = current_age
 
     def _calc(self):
-        return pmt(self.discount_rate, self.final_age - current_age, self.portfolio.value)
+        return pmt(self.discount_rate, self.final_age - self.current_age, self.portfolio.value)
 
     def start(self):
         return self._calc()
@@ -22,7 +22,7 @@ class RetrenchmentRule(WithdrawalStrategy):
             # Update our internal state.
             self.current_age += 1
 
-            if current_age < self.final_age:
+            if self.current_age < self.final_age:
                 withdrawal = self._calc()
             else:
                 # We ran out of money and are still alive :(
