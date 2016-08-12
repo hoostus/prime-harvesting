@@ -34,11 +34,52 @@ def pmt(rate, nper, pv):
     n = math.floor(n)
     return Decimal(n)
 
-
 def prod(x):
     return functools.reduce(operator.mul, x, 1)
 
-def hreff(withdrawals, returns, floor=Decimal('.03')):
+def hreff_cew_floor(floor, cashflows, epsilon=30, gamma=5):
+    """ This is CEW-with-a-floor that McClung defines for use
+    in HREFF.
+
+    >>> from decimal import Decimal as D
+    >>> ns = [6.1, 5, 4.3, 3.6, 4, 4.6,
+    ... 4.5, 5.6, 6.4, 4.1, 4.9, 4.9, 4.3,
+    ... 3.5, 3.4, 3.8, 4.3, 5.7, 3.8, 3.5,
+    ... 3.5, 3.9, 4.7, 5.6, 5.8, 5.4, 8.2,
+    ... 8.9, 8.8, 7.2, 9.2, 8.8, 9.1, 9.8,
+    ... 7.7, 8.7, 8.5, 10, 7.3, 7.3]
+    >>> float(hreff_cew_floor(D(2), [D(n) for n in ns]))
+    5.683344625814626
+    """
+    def f(x):
+        if x <= floor:
+            return x - floor
+        else:
+            return (x -
+            (floor /
+                (1 +
+                    (epsilon *
+                        (x - floor) ** 3)
+                )
+            ))
+
+    # by default, python doesn't handle negative numbers and odd-fractional
+    # exponents properly. I don't know why. Anyway, this does the right thing.
+    def nth_root(x, n):
+        return math.copysign(math.pow(abs(x), 1.0/n), x)
+
+    def sigma(x):
+        # Decimals can't do fractional powers so
+        # convert to a float, which can
+        f_x = float(f(x))
+        n = nth_root(f_x, gamma)
+        return n
+
+    x = average(map(sigma, cashflows))
+    x = pow(x, gamma)
+    return Decimal(x)
+
+def hreff(withdrawals, returns, floor=Decimal('.03'), gamma=5, fudge=Decimal('.001')):
     ''' Harvesting-Rate Efficiency (HREFF)
 
     HREFF is defined in Living Off Your Money (2016) by McClung's. It is a variant
@@ -46,42 +87,15 @@ def hreff(withdrawals, returns, floor=Decimal('.03')):
     withdrawals go below that.
     '''
 
-    gamma = 5
-
-    def cew_floor(cashflows):
-        epsilon = 30
-
-        def f(x):
-            if x <= floor:
-                return x - floor
-            else:
-                return (x -
-                (floor /
-                    (1 +
-                        (epsilon *
-                            (x - floor) ** 3)
-                    )
-                ))
-
-        # by default, python doesn't handle negative numbers and odd-fractional
-        # exponents properly. I don't know why. Anyway, this does the right thing.
-        def nth_root(x, n):
-            return math.copysign(math.pow(abs(x), 1.0/n), x)
-
-        def sigma(x):
-            # Decimals can't do fractional powers so
-            # convert to a float, which can
-            f_x = float(f(x))
-            n = nth_root(f_x, gamma)
-            return n
-
-        x = average(map(sigma, cashflows))
-        x = pow(x, gamma)
-        return Decimal(x)/100
+    # With WER we added a fudge...so we do it here to be consistent.
+    withdrawals = [n + fudge for n in withdrawals]
+    returns = [n + fudge for n in returns]
 
     # The above functions expect the percentages to be expressed as 5.6 instead of 0.056
     # so we need to convert back and forth
-    return cew_floor([w*100 for w in withdrawals]) / ssr(returns)
+    cew = hreff_cew_floor(floor*100, [w*100 for w in withdrawals], gamma=gamma)
+    cew /= 100
+    return cew / ssr(returns)
 
 def wer(withdrawals, returns, fudge=Decimal('.001')):
     ''' Withdrawal Efficiency Rate
@@ -97,14 +111,9 @@ def wer(withdrawals, returns, fudge=Decimal('.001')):
         Described in Optimal Withdrawal Strategy for Retirement Income Portfolios (2012)
         by Blanchett, Kowara, Chen
         https://corporate.morningstar.com/us/documents/ResearchPapers/OptimalWithdrawalStrategyRetirementIncomePortfolios.pdf
-
     '''
     c = cew([n + fudge for n in withdrawals])
-    s = ssr(returns) + fudge
-    if c > s:
-        from pprint import pprint
-        #import pdb;pdb.set_trace()
-    #assert c < s, "Found super-optimal solution, which is impossible. CEW = %s. SSR = %s." % (c, s)
+    s = ssr([n + fudge for n in returns])
     return c / s
 
 
@@ -112,8 +121,24 @@ def ssr(r):
     ''' Sustainable Spending Rate given a known sequence of returns
 
         Described in Optimal Withdrawal Strategy for Retirement Income Portfolios (2012)
-        by Blanchett, Kowara, Chen
+        by Blanchett, Kowara, Chen (among many other places; they did not invent it)
         https://corporate.morningstar.com/us/documents/ResearchPapers/OptimalWithdrawalStrategyRetirementIncomePortfolios.pdf
+
+        In http://www.gummy-stuff.org/sensible_withdrawals.htm#MAGIC gummy calls this the Magic Formula
+
+        >>> from decimal import Decimal as D
+        >>> ns = [.04] * 30
+        >>> float(ssr([D(n) for n in ns]))
+        0.05560586455159744
+        >>> ns = [-.20, .15, .15, 0, .30] * 6
+        >>> float(ssr([D(n) for n in ns]))
+        0.061263512947893395
+        >>> ns = []
+        >>> float(ssr([D(n) for n in ns]))
+        1.0
+        >>> ns = [.04]
+        >>> float(ssr([D(n) for n in ns]))
+        1.0
     '''
 
     def ssr_seq(r):
@@ -127,7 +152,7 @@ def ssr(r):
     r_r = list(reversed(r[:-1]))
     return Decimal('1') / ssr_seq(r_r)
 
-def cew(cashflows):
+def cew(cashflows, gamma = Decimal('4.0')):
     ''' Constant Equivalent Withdrawals
     Given a sequence of withdrawals, calculate what the constant-equivalent would be.
 
@@ -141,14 +166,24 @@ def cew(cashflows):
     Based on my readings many seem to think it is the range 1 to 3 based on people's attitudes towards risk,
     however there are some who look at the asset allocation decisions people actually make that claim it must
     be 10 or more as a result."
+
+    >>> from decimal import Decimal as D
+    >>> ns = [6.1, 5, 4.3, 3.6, 4, 4.6,
+    ... 4.5, 5.6, 6.4, 4.1, 4.9, 4.9, 4.3,
+    ... 3.5, 3.4, 3.8, 4.3, 5.7, 3.8, 3.5,
+    ... 3.5, 3.9, 4.7, 5.6, 5.8, 5.4, 8.2,
+    ... 8.9, 8.8, 7.2, 9.2, 8.8, 9.1, 9.8,
+    ... 7.7, 8.7, 8.5, 10, 7.3, 7.3]
+    >>> float(cew([D(n) for n in ns]))
+    4.662420649169921
     '''
 
-    assert 0 not in cashflows, "Having a zero in the cashflows breaks CEW. 0 found at index %d" % cashflows.index(0)
+    #assert 0 not in cashflows, "Having a zero in the cashflows breaks CEW. 0 found at index %d" % cashflows.index(0)
 
+    # The gamma = 4 was
     # chosen somewhat arbitrarily by Blanchett et al who point out that
     # the final results aren't very sensitive to this number (i.e. changing it to
     # 2 doesn't affect the final numbers very much)
-    gamma = Decimal('4.0')
 
     def sigma(c):
         return pow(c, -gamma) / gamma
@@ -168,6 +203,11 @@ def gompertz(current_age, live_to, female=True):
     The parameters are based on the Annuity 2000 table, calculated
     by Blancett in his paper, which means they are biased towards healthy
     people with extra longevity.
+
+    >>> gompertz(65, 70)
+    0.9603531460340051
+    >>> gompertz(65, 70, False)
+    0.9332099343866791
     """
 
     if female:
@@ -207,3 +247,7 @@ def probability_of_ruin(return_mean, return_stddev, mortality_rate, withdrawal_p
     # this should return 0.267590954
     # gamma.dist(withdrawal_pct, alpha, beta)
     # I can't figure out how to use scipy to emulate this Excel function :(
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
