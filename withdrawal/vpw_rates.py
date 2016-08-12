@@ -2,7 +2,7 @@ from decimal import Decimal
 import pandas
 import math
 
-_vpw = pandas.read_csv('vpw.csv')
+_vpw = pandas.read_csv('withdrawal/vpw.csv')
 # Keep them all as strings, instead of converting to floats
 # Since we prefer Decimal...
 for i in range(1, 41):

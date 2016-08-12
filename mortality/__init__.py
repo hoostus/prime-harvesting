@@ -29,13 +29,13 @@ def omy(husband, wife, age, survive):
 # is. In general, the numbers here are more grim. e.g. for a 90-year old
 # male is says the Death Probability is .181789 but the actual 2004
 # Period Life Table says it is only 0.155383
-HULSTROM = 'hultstrom-lifetable.csv'
+HULSTROM = 'mortality/hultstrom-lifetable.csv'
 
 # This is *actual* 2004 life table. (I think.)
 # The top level index is at http://www.cdc.gov/nchs/products/life_tables.htm
-NVSS_2004 = '2004-life-table.csv'
+NVSS_2004 = 'mortality/2004-life-table.csv'
 # And an updated 2011 version
-NVSS_2011 = '2011-life-table.csv'
+NVSS_2011 = 'mortality/2011-life-table.csv'
 
 # The Annuity 2000 life table is different yet again. (It will give even longer
 # life spans than the 2004 life table.) The difference is because Annuity 2000
@@ -44,7 +44,7 @@ NVSS_2011 = '2011-life-table.csv'
 # one to use for most testing.
 #
 # The source was randomly Googled.
-ANNUITY_2000 = 'annuity-2000.csv'
+ANNUITY_2000 = 'mortality/annuity-2000.csv'
 
 def make_mortality(csv_filename):
     life = pandas.read_csv(csv_filename)
