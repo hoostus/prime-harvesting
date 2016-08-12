@@ -34,4 +34,4 @@ s_60_40_40 = [_lookup('60/40 40 years', n) for n in range(1, 41)]
 s_70_30_40 = [_lookup('70/30 40 years', n) for n in range(1, 41)]
 s_80_20_40 = [_lookup('80/20 40 years', n) for n in range(1, 41)]
 
-vpw_rates = s_60_40_40
+default = s_60_40_40
