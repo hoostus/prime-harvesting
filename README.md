@@ -74,7 +74,7 @@ failure is smaller.
 "Low Bond Yields and Safe Portfolio Withdrawal Rates"
 - It would be quite interesting to see the portfolio and withdrawal trajectory of 30/70, 40/60, and maybe 50/50 (stocks/bonds) constant AA portfolios vs Prime Harvesting in both nominal and inflation-adjusted term, and look at the result with the eye of a retiree who sees nominal numbers on his bank account and mutual fund statements.
 longinvest in https://www.bogleheads.org/forum/viewtopic.php?f=10&t=192105&p=2987869#p2986911
-- Use HREFF 
+- Use HREFF
 All that said, I agree with Siamond that in an ideal world all my research
 would be based on an agreed-on variable withdrawal metric. I actually
 define a candidate variable-withdrawal metric in the book (i.e. HREFF) to
@@ -83,3 +83,8 @@ it, but I believe doing so for harvesting methods like Prime Harvesting
 would hinder the reader more that helping (i.e. it's complex and hasn't
 been established in the industry). I did use HREFF to evaluate Prime
 Harvesting in my own research, but only to confirm the main results.
+- CEW (and by extension WER & HREFF) punishing declining withdrawal rates.
+However, the evidence from actual retirees (Bernicke & others) shows that's
+exactly what retirees do. Have a metric that follows this?
+- Mortality-weighted shortfall calculations from Gardner's paper.
+- Look at how bond percentages change with monthly Prime Harvesting.
