@@ -32,8 +32,18 @@ class Portfolio():
         return self._stocks
 
     @property
+    def stocks_pct(self):
+        if self.value == 0: return Decimal(0)
+        else: return self._stocks / self.value
+
+    @property
     def bonds(self):
         return self._bonds
+
+    @property
+    def bonds_pct(self):
+        if self.value == 0: return Decimal(0)
+        else: return self._bonds / self.value
 
     @property
     def cash(self):
