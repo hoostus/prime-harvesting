@@ -59,3 +59,27 @@ class EM(WithdrawalStrategy):
 
 def ECM(portfolio, harvest_strategy):
     return EM(portfolio, harvest_strategy, scale_rate=Decimal('.6'), floor_rate=Decimal('.025'))
+
+# TODO: This is still a work in progress.
+class DeltaPrime(WithdrawalStrategy):
+    def __init__(self, portfolio, initial_withdrawal_rate=Decimal('.05')):
+        super().__init__(portfolio, harvest_strategy)
+
+        self.initial_withdrawal_rate = initial_withdrawal_rate
+        self.initial_withdrawal = self.initial_withdrawal_rate * self.portfolio.value
+
+    def start(self):
+        return self.initial_withdrawal
+
+    def next(self):
+        current_withdrawal_amount = self.initial_withdrawal_rate * self.portfolio.value
+        inflation_adjusted_withdrawal_amount = self.initial_withdrawal / self.cumulative_inflation
+
+        if current_withdrawal_amount < (inflation_adjusted_withdrawal_amount * Decimal('.9')):
+            current_withdrawal_rate = inflation_adjusted_withdrawal_amount / self.portfolio.value
+            scalar = Decimal('1.14') - (Decimal('3.38') * current_withdrawal_rate)
+            if scalar < Decimal('.05'):
+                scalar = Decimal('.05')
+            current_withdrawal_amount = scalar * inflation_adjusted_withdrawal_amount
+
+        baseline_years_left = self.portfolio.value / inflation_adjusted_withdrawal_amount
