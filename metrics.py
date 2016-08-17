@@ -239,6 +239,12 @@ def probability_of_ruin(return_mean, return_stddev, mortality_rate, withdrawal_p
 
     >>> probability_of_ruin(.07, .20, .0247, .05)
     0.26759095398304961
+    >>> probability_of_ruin(.0520, .1182, math.log(2)/22.30, .04)
+    0.097782639821254749
+    >>> probability_of_ruin(.0470, .1382, math.log(2)/22.30, .04)
+    0.15435694850153159
+    >>> probability_of_ruin(.049, .10, math.log(2)/22.30, .04)
+    0.089454318224481758
     """
     alpha = ((2 * return_mean) + (4 * mortality_rate))
     alpha /= (return_stddev * return_stddev) + mortality_rate
