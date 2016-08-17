@@ -10,7 +10,7 @@ class SensibleWithdrawals(WithdrawalStrategy):
     gummy doesn't really tell you what to pick for the starting rate,
     the floor, or how much of the profits you get to take.
 
-    But he mention 5%, 3%, 25%, so we'll use those for default
+    But he mentions 5%, 3%, 25%, so we'll use those for default
     parameters
 
     http://www.gummy-stuff.org/sensible_withdrawals.htm
