@@ -5,6 +5,7 @@ import functools
 import numpy
 import builtins
 import math
+from scipy.stats import gamma
 
 # numpy can't handle Decimal so we have this helper function
 def average(xs):
@@ -235,6 +236,9 @@ def probability_of_ruin(return_mean, return_stddev, mortality_rate, withdrawal_p
     You can calculate an implied mortality rate by =log(2)/median_life_span.
     For a 50-year old, assume the median life span is another 28.1 years. Then
     the implied mortality rate =log(2)/28.1 = .0247
+
+    >>> probability_of_ruin(.07, .20, .0247, .05)
+    0.26759095398304961
     """
     alpha = ((2 * return_mean) + (4 * mortality_rate))
     alpha /= (return_stddev * return_stddev) + mortality_rate
@@ -243,10 +247,7 @@ def probability_of_ruin(return_mean, return_stddev, mortality_rate, withdrawal_p
     beta = (return_stddev * return_stddev) + mortality_rate
     beta /= 2
 
-    # given alpha = 2.690880989, beta = 0.03235, mortality_rate = 0.0247, withdrawal_pct = .05
-    # this should return 0.267590954
-    # gamma.dist(withdrawal_pct, alpha, beta)
-    # I can't figure out how to use scipy to emulate this Excel function :(
+    return gamma.cdf(withdrawal_pct, alpha, scale=beta)
 
 if __name__ == '__main__':
     import doctest
