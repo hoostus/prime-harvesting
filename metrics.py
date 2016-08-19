@@ -224,28 +224,30 @@ def gompertz(current_age, live_to, female=True):
     )
     return q
 
-def probability_of_ruin(return_mean, return_stddev, mortality_rate, withdrawal_pct):
+def probability_of_ruin(return_mean, return_stddev, life_expectancy, withdrawal_pct):
     """
     Milevsky and Robinson's Stochastic Present Value from "A sustainable
     spending rate without simulation" (2005)
 
+    In "A Gentle Introduction to the Calculus of Retirement Income" Milevsky
+    calls this the "risk quotient"
+
     real_return: the real return of the portfolio (e.g. .07)
     std_dev: the volatility of the portfolio (e.g. .20)
+    life_expectancy: the median remaining lifespan. i.e. what 50% of the population
+        will live to. (e.g. 23)
     mortality_rate: the rate of dying every year (e.g. .0247)
 
-    You can calculate an implied mortality rate by =log(2)/median_life_span.
-    For a 50-year old, assume the median life span is another 28.1 years. Then
-    the implied mortality rate =log(2)/28.1 = .0247
-
-    >>> probability_of_ruin(.07, .20, .0247, .05)
-    0.26759095398304961
-    >>> probability_of_ruin(.0520, .1182, math.log(2)/22.30, .04)
+    >>> probability_of_ruin(.07, .20, 28.1, .05)
+    0.26785503502422264
+    >>> probability_of_ruin(.0520, .1182, 22.30, .04)
     0.097782639821254749
-    >>> probability_of_ruin(.0470, .1382, math.log(2)/22.30, .04)
+    >>> probability_of_ruin(.0470, .1382, 22.30, .04)
     0.15435694850153159
-    >>> probability_of_ruin(.049, .10, math.log(2)/22.30, .04)
+    >>> probability_of_ruin(.049, .10, 22.30, .04)
     0.089454318224481758
     """
+    mortality_rate = math.log(2) / life_expectancy
     alpha = ((2 * return_mean) + (4 * mortality_rate))
     alpha /= (return_stddev * return_stddev) + mortality_rate
     alpha -= 1
