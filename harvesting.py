@@ -95,4 +95,4 @@ class AltPrimeHarvesting(PrimeHarvesting):
         # Selling stocks but the "don't sell below your original stock pct" rule
         # says not to sell stocks?
         # But it is mathematically possible..
-        return min(0, self.portfolio.stocks - stock_target)
+        return max(0, self.portfolio.stocks - stock_target)
