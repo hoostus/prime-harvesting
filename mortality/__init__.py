@@ -61,3 +61,35 @@ def make_mortality(csv_filename):
       return random.random() > life.iloc[age][key]
 
     return survive
+
+def life_expectancy(male_age, female_age):
+    """
+        Passing in None instead of an age calculates single life
+        expectancy
+    """
+    life = pandas.read_csv(ANNUITY_2000)
+
+    def alive_at_age(gender, age):
+        key = {
+            MALE: "Male Lives",
+            FEMALE : "Female Lives"
+        }[gender]
+
+        return life.iloc[age][key]
+
+    def T(gender, age):
+        """ Sum up all of the years lived by people alive in this cohort """
+        sum = 0
+        for i in range(116-age):
+            sum += alive_at_age(gender, age + i)
+        return sum
+
+    if male_age and female_age:
+        raise NotImplementedError
+        # Doing this is wrong. This just creates a blended population.
+        # I looked at what aacalc does and...it seems too complex. There must be a simpler solution to this.
+        #return (T(MALE, male_age) + T(FEMALE, female_age)) / (alive_at_age(MALE, male_age) + alive_at_age(FEMALE, female_age))
+    elif male_age:
+        return T(MALE, male_age) / alive_at_age(MALE, male_age)
+    else:
+        return T(FEMALE, female_age) / alive_at_age(FEMALE, female_age)
