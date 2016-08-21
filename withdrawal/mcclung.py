@@ -36,7 +36,7 @@ class EM(WithdrawalStrategy):
         # If we go more than 40 years, just keep pretending we're still in the final year.
         self.years_left = max(1, self.years_left - 1)
 
-        inflation_adjusted_withdrawal_amount = self.last_year_withdrawal * (1 + self.current_inflation)
+        inflation_adjusted_withdrawal_amount = self.last_year_withdrawal * (1 + self.cumulative_inflation)
 
         withdrawal_rate = get_extended_mufp(self.years_left)
         withdrawal = withdrawal_rate * self.portfolio.value
