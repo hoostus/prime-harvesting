@@ -35,6 +35,9 @@ class Returns_US_1871:
         if wrap:
             self.dataframe += self.dataframe
 
+    def __len__(self):
+        return len(self.dataframe)
+
     def __iter__(self):
         return self.iter_from(1871)
 
