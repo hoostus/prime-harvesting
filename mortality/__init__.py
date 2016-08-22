@@ -62,6 +62,19 @@ def make_mortality(csv_filename):
 
     return survive
 
+def make_mortality_rate(source=ANNUITY_2000):
+    life = pandas.read_csv(source)
+
+    def f(age, gender):
+        key = {
+            MALE: "Male Death Probability",
+            FEMALE : "Female Death Probability"
+        }[gender]
+
+        return life.iloc[age][key]
+
+    return f
+
 def life_expectancy(male_age, female_age):
     """
         Passing in None instead of an age calculates single life
