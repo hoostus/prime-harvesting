@@ -63,12 +63,30 @@ def plot(s, x_label='', y_label='', y_lim=None, title=''):
     plt.title(title)
     plt.show()
 
+def plot_n(series, xlabel, title, add_commas=True, zero_based=True):
+    # series should be a dict where the key is the label and the value is the
+    # series. e.g. { 'Prime Harvesting' : [...] }
+    fig, ax = plt.subplots()
+    if add_commas:
+        format_axis_labels_with_commas(ax.get_yaxis())
+    plt.xlabel(xlabel)
+    plt.title(title)
+
+    for label in series.keys():
+        ax_n = fig.add_subplot(111, sharex=ax, sharey=ax)
+        ax_n.plot(series[label], label=label)
+        ax_n.set_ymargin(0.05)
+    plt.legend(loc=0)
+    if zero_based:
+        ax.set_ylim(bottom=0)
+    plt.show()
+
 def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=None):
     m_1 = max(s1)
     m_2 = max(s2)
     mm = max([m_1, m_2])
     y_lim_default = (0, mm)
-    
+
     fig, ax1 = plt.subplots()
     ax1.plot(s1, 'b')
     ax1.set_ylabel(s1_title, color='b')
