@@ -1,5 +1,7 @@
 from decimal import Decimal
 from .abc import WithdrawalStrategy
+from collections import deque
+from metrics import mean
 
 # These are all income smoothing algorithms. That means they shouldn't be
 # used directly. Instead they need to wrap another algorithm.
@@ -72,3 +74,22 @@ class LonginvestSmoothing(WithdrawalStrategy):
                     self.last_year - (self.last_year - amount) * self.adjustment)
         self.last_year = amount
         return amount
+
+class RollingAverageSmoothing(WithdrawalStrategy):
+    """ Take a rolling average of the last N years """
+    def __init__(self, real_withdrawal_strategy):
+        super().__init__(real_withdrawal_strategy.portfolio,
+            real_withdrawal_strategy.harvest)
+
+        self.strategy = real_withdrawal_strategy
+        self.lookback = deque(maxlen=3)
+
+    def start(self):
+        amount = self.strategy.start()
+        self.lookback.append(amount)
+        return amount
+
+    def next(self):
+        amount = self.strategy.next()
+        self.lookback.append(amount)
+        return Decimal(mean(self.lookback))
