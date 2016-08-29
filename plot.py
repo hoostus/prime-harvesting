@@ -1,7 +1,7 @@
 # Set graph styling to common styles
 from matplotlib import pyplot as plt
 import matplotlib
-import seaborn as sns
+import seaborn
 
 from metrics import max
 plt.style.use('seaborn-poster')
@@ -82,6 +82,7 @@ def plot_n(series, xlabel, title, add_commas=True, zero_based=True):
     plt.show()
 
 def plot_two(s1, s2, s1_title='', s2_title='', x_label='', title='', y_lim=None):
+    # This deprecated. Use plot_n instead.
     m_1 = max(s1)
     m_2 = max(s2)
     mm = max([m_1, m_2])
