@@ -5,7 +5,7 @@ from portfolio import Portfolio
 from decimal import Decimal
 from adt import YearlyResults
 
-def simulate_withdrawals(series,
+def withdrawals(series,
                             portfolio=(600000, 400000),
                             years=40,
                             harvesting=PrimeHarvesting,
@@ -26,6 +26,9 @@ def simulate_withdrawals(series,
         data = withdrawal_strategy.send(d)
         annual.append(data)
     return annual
+
+# Provide alias to legacy name.
+simulate_withdrawals = withdrawals
 
 # Numbers from http://www.wsj.com/articles/how-to-think-about-risk-in-retirement-1417408070
 # Withdraw 50,000 the first 5 years and then 21,700 thereafter
