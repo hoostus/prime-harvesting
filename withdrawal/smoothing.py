@@ -31,9 +31,15 @@ class SteinerSmoothing(WithdrawalStrategy):
     def next(self):
         amount = self.strategy.next()
         if self.last_year:
+            low_corridor = amount * Decimal('.9')
+            high_corridor = amount * Decimal('1.1')
             adjusted = self.last_year * (1 + self.current_inflation)
-            amount = max(amount, adjusted * Decimal('.9'))
-            amount = min(amount, adjusted * Decimal('1.1'))
+            if low_corridor < adjusted < high_corridor:
+                amount = adjusted
+            elif adjusted > high_corridor:
+                amount = high_corridor
+            else:
+                amount = low_corridor
         self.last_year = amount
         return amount
 
