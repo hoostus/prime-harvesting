@@ -6,10 +6,10 @@ from decimal import Decimal
 from adt import YearlyResults
 
 def withdrawals(series,
-                            portfolio=(600000, 400000),
-                            years=40,
-                            harvesting=PrimeHarvesting,
-                            withdraw=EM):
+                portfolio=(600000, 400000),
+                years=40,
+                harvesting=PrimeHarvesting,
+                withdraw=EM):
     portfolio = Portfolio(portfolio[0], portfolio[1])
     strategy = harvesting(portfolio).harvest()
     strategy.send(None)
