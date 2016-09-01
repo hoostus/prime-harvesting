@@ -67,10 +67,6 @@ class Portfolio():
         self._cash -= amount
         return self.cash
 
-    def deposit_cash(self, amount):
-        self._cash += amount
-        return self.cash
-
     def empty_cash(self):
         x = self.cash
         self._cash = 0
