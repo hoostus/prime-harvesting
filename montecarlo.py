@@ -3,43 +3,33 @@ import random
 from decimal import Decimal
 from adt import AnnualChange
 
+class NormalReturns:
+    def __init__(self, mean, stddev):
+        self.mean = mean
+        self.stddev = stddev
+
+    def __iter__(self):
+        while True:
+            yield self.random_year()
+
+    def random_year(self):
+        r = random.normalvariate(self.mean, self.stddev)
+        r = Decimal(r)
+        return AnnualChange(year=0, stocks=r, bonds=r, inflation=Decimal(0))
+
+
 class LogNormalReturns:
     def __init__(self, mean, stddev):
         self.mean = mean
         self.stddev = stddev
 
+    def __iter__(self):
+        while True:
+            yield self.random_year()
+
     def random_year(self):
-        ''' This is the same method name as in market.US_1871_Returns...which
-        allows this to be a drop-in replacement for that when simulating data '''
-
-        # I honestly can't figure out what is right here.
-        # Just using lognormvariate directly gives you numbers like 0.93 and 1.26
-        # Do you subtract one from that to get the percentage change?
-        # Sounds reasonable enough.
-        # But then you don't seem to get bad market outcomes nearly often enough.
-        # As in, after 10,000 simulated years there are only 16 instances of a 40%
-        # decline. Yet in the 20th century we had it happen 3 times in ~100 years.
         r = random.lognormvariate(self.mean, self.stddev) - 1
-
-        # By randomly taking a log here we get 64 out of 10,000 being a 40% decline.
-        #r = math.log(random.lognormvariate(self.mean, self.stddev))
-
-        # This math comes from the wikipedia article on LogNormal
-        # But...it doesn't generate the kinds of numbers you expect
-        """
-        mu = math.log(
-            self.mean /
-            math.sqrt(1 +
-                (self.stddev ** 2)/(self.mean ** 2))
-        )
-        sigma = math.sqrt(
-            1 + (self.stddev ** 2)/(self.mean ** 2)
-        )
-        r = random.lognormvariate(mu, sigma)
-        """
-
         r = Decimal(r)
-
         return AnnualChange(year=0, stocks=r, bonds=r, inflation=Decimal(0))
 
 # Numbers come from Blanchett et al. (2012)
