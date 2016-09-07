@@ -19,7 +19,7 @@ class AnnualRebalancing(HarvestingStrategy):
             new_val = self.portfolio.value - actual_amount
             if new_val > 0:
                 self.portfolio.buy_stocks(new_val * self.stock_pct)
-                self.portfolio.buy_bonds(self.portfolio.cash - amount)
+                self.portfolio.buy_bonds(self.portfolio.cash - actual_amount)
 
             amount = yield self.portfolio.empty_cash()
 
