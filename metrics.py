@@ -33,6 +33,11 @@ def pmt(rate, nper, pv):
 
     n = -numpy.pmt(float(rate), nper, float(pv), 0, 1)
     n = math.floor(n)
+
+    # We can never take out more than the portfolio or less than 0.
+    n = min([n, pv])
+    n = max([n, 0])
+
     return Decimal(n)
 
 def prod(x):
