@@ -3,6 +3,79 @@ import random
 from decimal import Decimal
 from adt import AnnualChange
 
+def clip(x, min, max):
+    return sorted((min, x, max))[1]
+
+class AutoRegression:
+    """
+        This model (and the parameters used) are taken from
+        "Low Bond Yields and Safe Portfolio Withdrawal Rates" (2013)
+        by Blanchett, Finke, Pfau
+    """
+
+    def __init__(self, initial_yield=2.5/100):
+        self.initial_yield = initial_yield
+
+    # bond yield params
+    ay = .269/100
+    by = .949
+
+    # cash total return params
+    ac = -2.024/100
+    bc = .978
+    byc = .321
+
+    coeffs = {
+        #            ai            byi    bc   by_delta_i  e_std   min  max
+        'bonds' : (.920/100,      .678,  .446, -3.714,  5.066/100, -.15, .40),
+        'stocks' : (7.951/100,   -.308,  .593, -4.221, 19.358/100,  -1,  2),
+        'inflation' : (2.983/100, .964, -.554,  1.012,  2.088/100, -.10, .20)
+    }
+
+    def __iter__(self):
+        y_prev = self.initial_yield
+        year = 0
+        while True:
+            # first determine bond yields based on previous year
+            #import pdb;pdb.set_trace()
+            ey = random.normalvariate(0, .009)
+            y_new = self.ay + (self.by * y_prev)
+            y_new += ey
+            y_new = clip(y_new, .01, .10)
+
+            delta_y = (y_new - y_prev)
+
+            # now determine total returns for cash
+            ec = random.normalvariate(0, .10)
+            rc = self.ac + (self.bc * y_new) + (self.byc * delta_y)
+            rc += ec
+            rc = clip(rc, 0, .10)
+
+            # now determine return for bonds, stocks, and inflation
+            def calc_returns(ai, byi, bc, by_delta_i, e_stddev, min, max):
+                ei = random.normalvariate(0, e_stddev)
+                n = (
+                    ai +
+                    (byi * y_new) +
+                    (bc * rc) +
+                    (by_delta_i * delta_y)
+                )
+                n += ei
+                return clip(n, min, max)
+
+            rs = {}
+            for k in self.coeffs:
+                rs[k] = calc_returns(*self.coeffs[k])
+            yield AnnualChange(
+                year=year,
+                stocks=rs['stocks'],
+                bonds=rs['bonds'],
+                inflation=rs['inflation']
+            )
+
+            y_prev = y_new
+            year += 1
+
 class NormalReturns:
     def __init__(self, mean, stddev):
         self.mean = mean
