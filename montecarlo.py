@@ -2,19 +2,23 @@ import math
 import random
 from decimal import Decimal
 from adt import AnnualChange
+import pandas
 
 def clip(x, min, max):
     return sorted((min, x, max))[1]
 
-class AutoRegression:
+class LowYieldsAutoRegression:
     """
         This model (and the parameters used) are taken from
         "Low Bond Yields and Safe Portfolio Withdrawal Rates" (2013)
         by Blanchett, Finke, Pfau
     """
 
-    def __init__(self, initial_yield=2.5/100):
+    def __init__(self, initial_yield=2.5/100, logging=False):
         self.initial_yield = initial_yield
+        self.logging = logging
+        if self.logging:
+            self.log = pandas.DataFrame(columns=['y_prev', 'y_new', 'rc', 'stocks', 'bonds', 'inflation'], dtype='float')
 
     # bond yield params
     ay = .269/100
@@ -27,17 +31,17 @@ class AutoRegression:
 
     coeffs = {
         #            ai            byi    bc   by_delta_i  e_std   min  max
-        'bonds' : (.920/100,      .678,  .446, -3.714,  5.066/100, -.15, .40),
-        'stocks' : (7.951/100,   -.308,  .593, -4.221, 19.358/100,  -1,  2),
-        'inflation' : (2.983/100, .964, -.554,  1.012,  2.088/100, -.10, .20)
+        'bonds' : (.920/100,      .446,  .678, -3.714,  5.066/100, -.15, .40),
+        'stocks' : (7.951/100,    .593, -.308, -4.221, 19.358/100,  -1,  2),
+        'inflation' :(2.983/100, -.554,  .964,  1.012,  2.088/100, -.10, .20)
     }
 
     def __iter__(self):
         y_prev = self.initial_yield
+
         year = 0
         while True:
             # first determine bond yields based on previous year
-            #import pdb;pdb.set_trace()
             ey = random.normalvariate(0, .009)
             y_new = self.ay + (self.by * y_prev)
             y_new += ey
@@ -46,7 +50,7 @@ class AutoRegression:
             delta_y = (y_new - y_prev)
 
             # now determine total returns for cash
-            ec = random.normalvariate(0, .10)
+            ec = random.normalvariate(0, .01)
             rc = self.ac + (self.bc * y_new) + (self.byc * delta_y)
             rc += ec
             rc = clip(rc, 0, .10)
@@ -56,8 +60,8 @@ class AutoRegression:
                 ei = random.normalvariate(0, e_stddev)
                 n = (
                     ai +
-                    (byi * y_new) +
                     (bc * rc) +
+                    (byi * y_new) +
                     (by_delta_i * delta_y)
                 )
                 n += ei
@@ -65,7 +69,12 @@ class AutoRegression:
 
             rs = {}
             for k in self.coeffs:
+                # Does this generate real or nominal returns for the stocks & bonds?
                 rs[k] = calc_returns(*self.coeffs[k])
+
+            if self.logging:
+                self.log.loc[year] = (y_prev, y_new, rc, rs['stocks'], rs['bonds'], rs['inflation'])
+
             yield AnnualChange(
                 year=year,
                 stocks=rs['stocks'],
