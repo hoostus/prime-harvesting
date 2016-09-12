@@ -1,8 +1,19 @@
 from decimal import Decimal
 import itertools
 import pandas
-
+import collections
 from adt import AnnualChange
+import random
+
+def namedtuple_with_defaults(typename, field_names, default_values=()):
+    T = collections.namedtuple(typename, field_names)
+    T.__new__.__defaults__ = (None,) * len(T._fields)
+    if isinstance(default_values, collections.Mapping):
+        prototype = T(**default_values)
+    else:
+        prototype = T(*default_values)
+    T.__new__.__defaults__ = tuple(prototype)
+    return T
 
 
 def constant_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
@@ -24,6 +35,79 @@ def big_drop(after=10):
     while True:
         yield AnnualChange(year=0, stocks=Decimal('.08'), bonds=Decimal('.04'), inflation=Decimal('.03'))
 
+class PortfolioCharts_1927:
+    """ All of the other code only deals with stocks and bonds. Rewriting all
+    of it to deal with arbitrary asset classes is not appealing at the moment.
+    I also don't know of an actual use case for it. So we'll do a bit of a hack.
+    You need to pass in a Weights tuple that tells this how to weight the returns
+    of the various subclasses. That means the asset allocation is fixed and can't
+    vary over time. But it also means I don't have to rewrite everything right now. """
+    asset_classes = [x + y for x in ("LC", "MC", "SC") for y in ("B", "G", "V")]
+    Weights = namedtuple_with_defaults("Weights", asset_classes, default_values=[0] * len(asset_classes))
+
+    def __init__(self, weights):
+        self.dataframe = pandas.read_csv('stock-index-calculator-20160620-v2.csv')
+        self.years_of_data = len(self.dataframe)
+        self.weights = weights
+
+    def fmt(self, row):
+        stock_performance = [row[x] * self.weights._asdict()[x] for x in self.asset_classes]
+        stock_performance = sum(stock_performance)
+        return AnnualChange(
+                year = row['Year'],
+                stocks = Decimal(stock_performance) / 100,
+                bonds = Decimal(row['IT Bonds']) / 100,
+                inflation = Decimal(row['CPI-U']) / 100
+        )
+
+    def random_year(self):
+        i = random.randint(0, len(self.dataframe) - 1)
+        return self.fmt(self.dataframe.iloc[i])
+
+    def get_year(self, year):
+        i = random.randint(0, len(self.dataframe) - 1)
+        return self.fmt(self.dataframe.iloc[year-1927])
+
+
+    def iter_from(self, year, length=None):
+        start = year - 1927
+        assert start >= 0
+        count = 0
+        for row in self.dataframe.iloc[start:].iterrows():
+            yield self.fmt(row[1])
+            count += 1
+            if length != None and count >= length:
+                raise StopIteration
+
+class UK1900:
+    def __init__(self):
+        self.dataframe = pandas.read_csv('uk1900.csv')
+
+    def __len__(self):
+        return len(self.dataframe)
+
+    def random_year(self):
+        i = random.randint(0, len(self.dataframe) - 1)
+        return self.fmt(self.dataframe.iloc[i])
+
+    def fmt(self, row):
+        (stocks, bonds, inflation) = (Decimal(row[x]) for x in ("Real Equity", "Real Gilt", "Inflation"))
+        return AnnualChange(
+                year = row['Year'],
+                stocks = stocks,
+                bonds = bonds,
+                inflation = 0 # always 0 since the others are 'real'
+        )
+
+    def iter_from(self, year, length=None):
+        start = year - 1900
+        assert start >= 0
+        count = 0
+        for row in self.dataframe.iloc[start:].iterrows():
+            yield self.fmt(row[1])
+            count += 1
+            if length != None and count >= length:
+                raise StopIteration
 
 class Returns_US_1871:
     def __init__(self, wrap=False):
