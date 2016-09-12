@@ -64,8 +64,6 @@ https://www.kitces.com/blog/Renaming-The-Outcomes-Of-A-Monte-Carlo-Retirement-Pr
 - Do a comparison of 3 states: probability of adjustment, probability of excess, and
 the Goldilocks "just right". How to define "just right"? Similar to the Sleep
 Well At Night Number...
-- "Sleep Well At Night" is an absolute number? Based on estimated number of
-years left alive?
 - Probability of failure and SIZE of failure might be different. You might
 choose the plan with the higher probability of failure because the size of
 failure is smaller.
@@ -88,3 +86,12 @@ However, the evidence from actual retirees (Bernicke & others) shows that's
 exactly what retirees do. Have a metric that follows this?
 - Mortality-weighted shortfall calculations from Gardner's paper.
 - Look at how bond percentages change with monthly Prime Harvesting.
+- PMT Prime.
+- Look at how valuation/expected returns in PMT does long term smoothing
+- Try putting Pye's higher rate with Siegel & Waring's average lifespan
+  Does it tilt TOO much towards early income?
+- Map early income tilts from PMT shapes against Bernicke & Blanchett's
+  research on actual retiree spending.
+- The results for Pye still seem wrong. It should always be lower than what PMT
+  gives but I see it sometimes higher (e.g. the graphs in my post). What's up
+  with that?
