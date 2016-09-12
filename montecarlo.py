@@ -77,9 +77,9 @@ class LowYieldsAutoRegression:
 
             yield AnnualChange(
                 year=year,
-                stocks=rs['stocks'],
-                bonds=rs['bonds'],
-                inflation=rs['inflation']
+                stocks=Decimal(rs['stocks']),
+                bonds=Decimal(rs['bonds']),
+                inflation=Decimal(rs['inflation'])
             )
 
             y_prev = y_new
