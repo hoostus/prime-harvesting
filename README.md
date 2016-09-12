@@ -68,19 +68,6 @@ Well At Night Number...
 choose the plan with the higher probability of failure because the size of
 failure is smaller.
 - Try to tie together Prime Harvesting and valuations better.
-- Implement the autoregressive model for returns from Blanchett, Finke, Pfau in
-"Low Bond Yields and Safe Portfolio Withdrawal Rates"
-- It would be quite interesting to see the portfolio and withdrawal trajectory of 30/70, 40/60, and maybe 50/50 (stocks/bonds) constant AA portfolios vs Prime Harvesting in both nominal and inflation-adjusted term, and look at the result with the eye of a retiree who sees nominal numbers on his bank account and mutual fund statements.
-longinvest in https://www.bogleheads.org/forum/viewtopic.php?f=10&t=192105&p=2987869#p2986911
-- Use HREFF
-All that said, I agree with Siamond that in an ideal world all my research
-would be based on an agreed-on variable withdrawal metric. I actually
-define a candidate variable-withdrawal metric in the book (i.e. HREFF) to
-compare variable-withdrawals strategies, so I could have easily have used
-it, but I believe doing so for harvesting methods like Prime Harvesting
-would hinder the reader more that helping (i.e. it's complex and hasn't
-been established in the industry). I did use HREFF to evaluate Prime
-Harvesting in my own research, but only to confirm the main results.
 - CEW (and by extension WER & HREFF) punishing declining withdrawal rates.
 However, the evidence from actual retirees (Bernicke & others) shows that's
 exactly what retirees do. Have a metric that follows this?
@@ -95,3 +82,4 @@ exactly what retirees do. Have a metric that follows this?
 - The results for Pye still seem wrong. It should always be lower than what PMT
   gives but I see it sometimes higher (e.g. the graphs in my post). What's up
   with that?
+- Walton's paper on inverted withdrawals
