@@ -49,17 +49,20 @@ def annotate_biggest(axis, s, location=None):
 
     annotate(axis, y, (x, y), location)
 
-def plot(s, x_label='', y_label='', y_lim=None, title=''):
+def plot(s, x_label='', y_label='', title='', add_commas=True, zero_based=True):
     fig, ax1 = plt.subplots()
-    ax1.plot(s, 'b')
-    ax1.set_ylabel(y_label, color='b')
-    if y_lim:
-        ax1.set_ylim(y_lim)
+
+    if add_commas:
+        format_axis_labels_with_commas(ax1.get_yaxis())
+
+#    if zero_based:
+#        ax1.set_ylim(bottom=0)
+
+    ax1.set_ymargin(0.05)
+    ax1.set_ylabel(y_label)
     ax1.set_xlabel(x_label)
 
-    for tl in ax1.get_yticklabels():
-        tl.set_color('b')
-
+    ax1.plot(s)
     plt.title(title)
     plt.show()
 
