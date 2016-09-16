@@ -2,6 +2,7 @@ from decimal import Decimal
 from .abc import WithdrawalStrategy
 from collections import deque
 from metrics import mean
+import pandas
 
 # These are all income smoothing algorithms. That means they shouldn't be
 # used directly. Instead they need to wrap another algorithm.
@@ -93,3 +94,36 @@ class RollingAverageSmoothing(WithdrawalStrategy):
         amount = self.strategy.next()
         self.lookback.append(amount)
         return Decimal(mean(self.lookback))
+
+class CAPE10Smoothing(WithdrawalStrategy):
+    """ This only works for a PMT system. We change the discount rate
+    every year based on 1/CAPE10. """
+
+    BASE_YEAR = 1881
+
+    def __init__(self, start_year, real_withdrawal_strategy):
+        assert type(real_withdrawal_strategy).__name__ == 'VPW'
+        assert start_year >= self.BASE_YEAR
+        super().__init__(real_withdrawal_strategy.portfolio,
+            real_withdrawal_strategy.harvest)
+
+        self.strategy = real_withdrawal_strategy
+        self.df = pandas.read_csv('cape10.csv')
+        self.year = start_year
+
+    def get_cape(self):
+        return self.df.iloc[self.year - self.BASE_YEAR]["CAPE10"]
+
+    def get_inv_cape(self):
+        return Decimal(1/self.get_cape())# + Decimal('.03')
+
+    def start(self):
+        self.strategy.stock_growth_rate = self.get_inv_cape()
+        amount = self.strategy.start()
+        return amount
+
+    def next(self):
+        self.year += 1
+        self.strategy.stock_growth_rate = self.get_inv_cape()
+        amount = self.strategy.next()
+        return amount

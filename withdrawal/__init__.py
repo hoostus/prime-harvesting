@@ -7,7 +7,8 @@ from .vpw_new import VPW
 from .inverted import InvertedWithdrawals
 from .mcclung import EM, ECM
 from .sensible import SensibleWithdrawals
-from .smoothing import SteinerSmoothing, LonginvestSmoothing, RollingAverageSmoothing
+from .smoothing import SteinerSmoothing, LonginvestSmoothing, RollingAverageSmoothing, CAPE10Smoothing
+from.pmt_prime import PMTPrime
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
