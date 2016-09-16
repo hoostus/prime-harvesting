@@ -1,5 +1,6 @@
 import pandas
 import random
+import collections
 
 MALE = 0
 FEMALE = 1
@@ -61,6 +62,28 @@ def make_mortality(csv_filename):
       return random.random() > life.iloc[age][key]
 
     return survive
+
+Person = collections.namedtuple("Person", "age gender")
+
+def gen_lifespan(people, survival_fn=None):
+    """ People is a an array of Persons which are just a tuple of age and gender
+    [ (age, gender), (age, gender), ...]
+
+    This allows us to check for same-sex couples,
+    couples with different ages, and so on easily
+    """
+    if not survival_fn:
+        survival_fn = make_mortality(ANNUITY_2000)
+    def g(year, people, survival_fn):
+        if len(people) == 0:
+            return year
+        else:
+            new_people = [person for person in people if survival_fn(person.age + year, person.gender)]
+            return g(year+1, new_people, survival_fn)
+
+    return g(0, people, survival_fn)
+
+DEFAULT_COUPLE = [Person(age=65, gender=MALE), Person(age=65, gender=FEMALE)]
 
 def make_mortality_rate(source=ANNUITY_2000):
     life = pandas.read_csv(source)
