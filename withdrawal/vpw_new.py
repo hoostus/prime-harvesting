@@ -13,10 +13,12 @@ class VPW(WithdrawalStrategy):
         super().__init__(portfolio, harvest_strategy)
 
         self.years_left = years_left
+        self.stock_growth_rate = VPW.STOCK_GROWTH_RATE
+        self.bond_growth_rate = VPW.BOND_GROWTH_RATE
 
     def _calc(self):
-        rate = (self.portfolio.stocks_pct * VPW.STOCK_GROWTH_RATE
-                + self.portfolio.bonds_pct * VPW.BOND_GROWTH_RATE)
+        rate = (self.portfolio.stocks_pct * self.stock_growth_rate
+                + self.portfolio.bonds_pct * self.bond_growth_rate)
         return pmt(rate, self.years_left, self.portfolio.value)
 
     def start(self): return self._calc()
