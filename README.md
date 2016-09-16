@@ -58,7 +58,6 @@ I've also included local copies of some of the Excel sheets the CSV files were d
 FUTURE IDEAS
 ============
 https://www.kitces.com/blog/Renaming-The-Outcomes-Of-A-Monte-Carlo-Retirement-Projection/
-
 - Probability of Failure should be called Probability of Adjustment
 - Probability of Success should be called Probability of Excess
 - Do a comparison of 3 states: probability of adjustment, probability of excess, and
@@ -79,7 +78,7 @@ exactly what retirees do. Have a metric that follows this?
   Does it tilt TOO much towards early income?
 - Map early income tilts from PMT shapes against Bernicke & Blanchett's
   research on actual retiree spending.
-- The results for Pye still seem wrong. It should always be lower than what PMT
-  gives but I see it sometimes higher (e.g. the graphs in my post). What's up
-  with that?
 - Walton's paper on inverted withdrawals
+- Smoothing: CAPE10 to set discount rate (a la Steiner) for "long term" smoothing.
+  But tilt toward early retirement (a la Pye), so add +3%?.
+  But still a fair amount of annual variation so have rolling 3-year average?
