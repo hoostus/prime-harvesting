@@ -83,7 +83,7 @@ def gen_lifespan(people, survival_fn=None):
 
     return g(0, people, survival_fn)
 
-DEFAULT_COUPLE = [Person(age=65, gender=MALE), Person(age=65, gender=FEMALE)]
+DEFAULT_COUPLE = [Person(age=65, gender=MALE), Person(age=63, gender=FEMALE)]
 
 def make_mortality_rate(source=ANNUITY_2000):
     life = pandas.read_csv(source)
