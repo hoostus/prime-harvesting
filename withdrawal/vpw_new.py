@@ -9,12 +9,14 @@ class VPW(WithdrawalStrategy):
     STOCK_GROWTH_RATE = Decimal('.05')
     BOND_GROWTH_RATE = Decimal('.018')
 
-    def __init__(self, portfolio, harvest_strategy, years_left=35):
+    def __init__(self, portfolio, harvest_strategy, years_left=35, replan=False):
         super().__init__(portfolio, harvest_strategy)
 
         self.years_left = years_left
         self.stock_growth_rate = VPW.STOCK_GROWTH_RATE
         self.bond_growth_rate = VPW.BOND_GROWTH_RATE
+
+        self.replan = replan
 
     def _calc(self):
         rate = (self.portfolio.stocks_pct * self.stock_growth_rate
@@ -25,5 +27,9 @@ class VPW(WithdrawalStrategy):
 
     def next(self):
         self.years_left -= 1
+
+        if self.replan:
+            if self.years_left < 15:
+                self.years_left += 10
 
         return self._calc()
