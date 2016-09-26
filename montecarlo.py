@@ -7,11 +7,138 @@ import pandas
 def clip(x, min, max):
     return sorted((min, x, max))[1]
 
+class LowYieldsHighValuations:
+    """
+    This model comes from "Initial Conditions and Optimal
+    Retirement Glidepaths" (2015) by Blanchett.
+
+    It is similar to the LowYieldsAutoRegression but it also
+    attempts to handle high valuations (that regress towards normal
+    valuations)
+    """
+
+    a_cape = [
+        13.61,
+        14.87,
+        10.62,
+        11.10,
+        10.45,
+         6.20,
+         6.69,
+         9.61,
+        10.41,
+         9.28,
+        10.21,
+        10.21,
+         8.04,
+         5.57,
+         6.76,
+         6.00,
+    ]
+    a_cape = [n/100 for n in a_cape]
+
+    b_cape = [
+        -0.47,
+        -0.54,
+        -0.28,
+        -0.31,
+        -0.27,
+        -0.01,
+        -0.04,
+        -0.22,
+        -0.28,
+        -0.21,
+        -0.27,
+        -0.27,
+        -0.13,
+         0.03,
+        -0.05,
+        0,
+    ]
+    b_cape = [n/100 for n in b_cape]
+
+    estocks_stdev = [
+        17.75,
+        17.71,
+        17.99,
+        17.90,
+        17.96,
+        18.13,
+        18.16,
+        18.16,
+        18.20,
+        18.22,
+        18.24,
+        18.31,
+        18.29,
+        18.36,
+        18.43,
+        18.01,
+    ]
+    estocks_stdev = [n/100 for n in estocks_stdev]
+
+    def __init__(self, initial_yield=.025, initial_cape = 27):
+        self.initial_yield = initial_yield
+        self.initial_cape = initial_cape
+
+        self.y_prev = self.initial_yield
+        self.year = 0
+
+    def random_year(self):
+        y_prev = self.y_prev
+
+        ey = random.normalvariate(0, .0125)
+        y_new = 0.225/100 + (0.95 * y_prev) + ey
+        y_new = clip(y_new, .01, .10)
+
+        ebond = random.normalvariate(0, .015)
+        r_bonds = 0 + (1.0 * y_new) + (-8.0 * (y_new - y_prev)) + ebond
+        # Blanchett doesn't provide min/max for r_bonds
+        # I'll reuse the min/max from LowYieldsAutoRegression
+        r_bonds = clip(r_bonds, -.15, .40)
+
+        ebill = random.normalvariate(0, .01)
+        r_bill = -.02 + y_new + 0.75 * (y_new - y_prev) + ebill
+        r_bill = clip(r_bill, .01, .10)
+
+        # the tables max out at 15 years...
+        lookup_year = min(15, self.year)
+        estocks = random.normalvariate(0, self.estocks_stdev[lookup_year])
+        r_stocks = self.a_cape[lookup_year] + self.b_cape[lookup_year] * self.initial_cape + estocks
+        # Blanchett doesn't provide min/max for r_stocks
+        # I'll reuse the min/max from LowYieldsAutoRegression
+        r_stocks = clip(r_stocks, -1, 2)
+
+        einflation = random.normalvariate(0, .01)
+        r_inflation = 0.0125 + (y_new - y_prev) + 0.5 * r_bill + einflation
+        r_inflation = clip(r_inflation, -.05, .10)
+
+        self.y_prev = y_new
+        self.year += 1
+
+        return AnnualChange(
+            year=self.year,
+            stocks=Decimal(r_stocks),
+            bonds=Decimal(r_bonds),
+            inflation=Decimal(r_inflation)
+        )
+
+    def __iter__(self):
+        while True:
+            yield self.random_year()
+
 class LowYieldsAutoRegression:
     """
         This model (and the parameters used) are taken from
         "Low Bond Yields and Safe Portfolio Withdrawal Rates" (2013)
         by Blanchett, Finke, Pfau
+
+        It starts with current low yields and slowly regresses back toward
+        "normal" yields (of 5%). The other returns are based on the yield.
+
+        When the paper came out yields were 2.5%, so that is the default.
+        You can use something lower if you want. The yield is the Barclays
+        Aggregate Bond Index (not just Treasuries!)
     """
 
     def __init__(self, initial_yield=2.5/100, logging=False):
@@ -19,6 +146,10 @@ class LowYieldsAutoRegression:
         self.logging = logging
         if self.logging:
             self.log = pandas.DataFrame(columns=['y_prev', 'y_new', 'rc', 'stocks', 'bonds', 'inflation'], dtype='float')
+
+        self.y_prev = self.initial_yield
+        self.year = 0
+
 
     # bond yield params
     ay = .269/100
@@ -36,54 +167,57 @@ class LowYieldsAutoRegression:
         'inflation' :(2.983/100, -.554,  .964,  1.012,  2.088/100, -.10, .20)
     }
 
-    def __iter__(self):
-        y_prev = self.initial_yield
+    def random_year(self):
+        y_prev = self.y_prev
 
-        year = 0
-        while True:
-            # first determine bond yields based on previous year
-            ey = random.normalvariate(0, .009)
-            y_new = self.ay + (self.by * y_prev)
-            y_new += ey
-            y_new = clip(y_new, .01, .10)
+        # first determine bond yields based on previous year
+        ey = random.normalvariate(0, .009)
+        y_new = self.ay + (self.by * y_prev)
+        y_new += ey
+        y_new = clip(y_new, .01, .10)
 
-            delta_y = (y_new - y_prev)
+        delta_y = (y_new - y_prev)
 
-            # now determine total returns for cash
-            ec = random.normalvariate(0, .01)
-            rc = self.ac + (self.bc * y_new) + (self.byc * delta_y)
-            rc += ec
-            rc = clip(rc, 0, .10)
+        # now determine total returns for cash
+        ec = random.normalvariate(0, .01)
+        rc = self.ac + (self.bc * y_new) + (self.byc * delta_y)
+        rc += ec
+        rc = clip(rc, 0, .10)
 
-            # now determine return for bonds, stocks, and inflation
-            def calc_returns(ai, byi, bc, by_delta_i, e_stddev, min, max):
-                ei = random.normalvariate(0, e_stddev)
-                n = (
-                    ai +
-                    (bc * rc) +
-                    (byi * y_new) +
-                    (by_delta_i * delta_y)
-                )
-                n += ei
-                return clip(n, min, max)
-
-            rs = {}
-            for k in self.coeffs:
-                # Does this generate real or nominal returns for the stocks & bonds?
-                rs[k] = calc_returns(*self.coeffs[k])
-
-            if self.logging:
-                self.log.loc[year] = (y_prev, y_new, rc, rs['stocks'], rs['bonds'], rs['inflation'])
-
-            yield AnnualChange(
-                year=year,
-                stocks=Decimal(rs['stocks']),
-                bonds=Decimal(rs['bonds']),
-                inflation=Decimal(rs['inflation'])
+        # now determine return for bonds, stocks, and inflation
+        def calc_returns(ai, byi, bc, by_delta_i, e_stddev, min, max):
+            ei = random.normalvariate(0, e_stddev)
+            n = (
+                ai +
+                (bc * rc) +
+                (byi * y_new) +
+                (by_delta_i * delta_y)
             )
+            n += ei
+            return clip(n, min, max)
 
-            y_prev = y_new
-            year += 1
+        rs = {}
+        for k in self.coeffs:
+            # Does this generate real or nominal returns for the stocks & bonds?
+            rs[k] = calc_returns(*self.coeffs[k])
+
+        if self.logging:
+            self.log.loc[year] = (y_prev, y_new, rc, rs['stocks'], rs['bonds'], rs['inflation'])
+
+        self.y_prev = y_new
+        self.year += 1
+
+        return AnnualChange(
+            year=self.year,
+            stocks=Decimal(rs['stocks']),
+            bonds=Decimal(rs['bonds']),
+            inflation=Decimal(rs['inflation'])
+        )
+
+
+    def __iter__(self):
+        while True:
+            yield self.random_year()
 
 class NormalReturns:
     def __init__(self, mean, stddev):
