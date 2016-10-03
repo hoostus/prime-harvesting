@@ -82,3 +82,5 @@ exactly what retirees do. Have a metric that follows this?
 - Smoothing: CAPE10 to set discount rate (a la Steiner) for "long term" smoothing.
   But tilt toward early retirement (a la Pye), so add +3%?.
   But still a fair amount of annual variation so have rolling 3-year average?
+- Treat SS as a bond, argument against: https://www.bogleheads.org/forum/viewtopic.php?f=10&t=200572&newpost=3072525#p3072379
+- How can Sensible Withdrawals have such a poor HREFF-3 when the floor is 3%? It seems like it should do AT LEAST as good as constant 4%?
