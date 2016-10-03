@@ -4,7 +4,7 @@ from .arva import ARVA
 from .pye import RetrenchmentRule
 from .simple import SimpleFormula
 from .vpw_new import VPW
-from .inverted import InvertedWithdrawals
+from .inverted import InvertedWithdrawals, TiltCapital
 from .mcclung import EM, ECM
 from .sensible import SensibleWithdrawals
 from .smoothing import SteinerSmoothing, LonginvestSmoothing, RollingAverageSmoothing, CAPE10Smoothing
