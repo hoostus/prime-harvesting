@@ -10,6 +10,7 @@ from .sensible import SensibleWithdrawals
 from .smoothing import SteinerSmoothing, LonginvestSmoothing, RollingAverageSmoothing, CAPE10Smoothing
 from .pmt_prime import PMTPrime
 from .rmd import FeelFree, IRS_RMD
+from .stout import Model3
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
