@@ -223,30 +223,34 @@ class NormalReturns:
     def __init__(self, mean, stddev):
         self.mean = mean
         self.stddev = stddev
+        self.year = 0
 
     def __iter__(self):
         while True:
+            self.year += 1
             yield self.random_year()
 
     def random_year(self):
         r = random.normalvariate(self.mean, self.stddev)
         r = Decimal(r)
-        return AnnualChange(year=0, stocks=r, bonds=r, inflation=Decimal(0))
+        return AnnualChange(year=self.year, stocks=r, bonds=r, inflation=Decimal(0))
 
 
 class LogNormalReturns:
     def __init__(self, mean, stddev):
         self.mean = mean
         self.stddev = stddev
+        self.year = 0
 
     def __iter__(self):
         while True:
+            self.year += 1
             yield self.random_year()
 
     def random_year(self):
         r = random.lognormvariate(self.mean, self.stddev) - 1
         r = Decimal(r)
-        return AnnualChange(year=0, stocks=r, bonds=r, inflation=Decimal(0))
+        return AnnualChange(year=self.year, stocks=r, bonds=r, inflation=Decimal(0))
 
 # Numbers come from Blanchett et al. (2012)
 # Index is the percentage of equities
