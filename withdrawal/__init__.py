@@ -11,6 +11,7 @@ from .smoothing import SteinerSmoothing, LonginvestSmoothing, RollingAverageSmoo
 from .pmt_prime import PMTPrime
 from .rmd import FeelFree, IRS_RMD
 from .stout import Model3
+from .vanguard import Vanguard
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
