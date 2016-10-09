@@ -12,6 +12,9 @@ from .pmt_prime import PMTPrime
 from .rmd import FeelFree, IRS_RMD
 from .stout import Model3
 from .vanguard import Vanguard
+from .clyatt import Clyatt
+from .guyton import Guyton
+from .floor_ceiling import FloorCeiling
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
