@@ -16,10 +16,10 @@ class SensibleWithdrawals(WithdrawalStrategy):
     http://www.gummy-stuff.org/sensible_withdrawals.htm
     """
 
-    def __init__(self, portfolio, harvest_strategy, extra_return_boost=Decimal('.25'), initial_rate=Decimal('.04'), min_rate=Decimal('.03')):
+    def __init__(self, portfolio, harvest_strategy, extra_return_boost=Decimal('.25'), initial_rate=Decimal('.05'), floor=Decimal('.03')):
         super().__init__(portfolio, harvest_strategy)
 
-        self.floor = min_rate * portfolio.value
+        self.floor = floor * self.portfolio.value
         self.extra_return_boost = extra_return_boost
         self.initial_rate = initial_rate
 
@@ -29,7 +29,7 @@ class SensibleWithdrawals(WithdrawalStrategy):
         return withdrawal
 
     def next(self):
-        current_withdrawal_amount = self.floor * (1 + self.current_inflation)
+        current_withdrawal_amount = self.floor * self.cumulative_inflation
 
         base_portfolio_value = self.portfolio.value - current_withdrawal_amount
         adjusted_previous_portfolio = self.previous_portfolio_value * (1 + self.current_inflation)
