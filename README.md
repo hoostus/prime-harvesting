@@ -84,3 +84,4 @@ exactly what retirees do. Have a metric that follows this?
   But still a fair amount of annual variation so have rolling 3-year average?
 - Treat SS as a bond, argument against: https://www.bogleheads.org/forum/viewtopic.php?f=10&t=200572&newpost=3072525#p3072379
 - How can Sensible Withdrawals have such a poor HREFF-3 when the floor is 3%? It seems like it should do AT LEAST as good as constant 4%?
+- Why do RMD and Sensible become more efficient when epsilon is increased to 10,000?
