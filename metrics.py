@@ -85,17 +85,13 @@ def hreff_cew_floor(floor, cashflows, epsilon=30, gamma=5):
     x = pow(x, gamma)
     return Decimal(x)
 
-def hreff(withdrawals, returns, floor=Decimal('.03'), gamma=5, fudge=Decimal('.0001')):
+def hreff(withdrawals, returns, floor=Decimal('.03'), gamma=5):
     ''' Harvesting-Rate Efficiency (HREFF)
 
     HREFF is defined in Living Off Your Money (2016) by McClung's. It is a variant
     of WER with the addition of a withdrawal floor and penalties when annual
     withdrawals go below that.
     '''
-
-    # With WER we added a fudge...so we do it here to be consistent.
-    withdrawals = [n + fudge for n in withdrawals]
-    returns = [n + fudge for n in returns]
 
     # The above functions expect the percentages to be expressed as 5.6 instead of 0.056
     # so we need to convert back and forth
