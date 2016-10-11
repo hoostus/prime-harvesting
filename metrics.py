@@ -128,6 +128,11 @@ def ssr(r):
 
         In http://www.gummy-stuff.org/sensible_withdrawals.htm#MAGIC gummy calls this the Magic Formula
 
+        In "The Perfect Withdrawal Amount" by Suarez, Suarez, and Waltz they point out
+        that the SSR is a measure of sequence of return risk. For a given set of returns
+        a lower SSR means you had a worse sequence. Early bad returns are multiplied
+        more often, reducing the overall SSR.
+
         >>> from decimal import Decimal as D
         >>> ns = [.04] * 30
         >>> float(ssr([D(n) for n in ns]))

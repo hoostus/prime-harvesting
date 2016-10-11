@@ -80,3 +80,6 @@ exactly what retirees do. Have a metric that follows this?
   But still a fair amount of annual variation so have rolling 3-year average?
 - Treat SS as a bond, argument against: https://www.bogleheads.org/forum/viewtopic.php?f=10&t=200572&newpost=3072525#p3072379
 - Why do RMD and Sensible become more efficient when epsilon is increased to 10,000?
+- In "The Perfect Withdrawal Amount", the provide a generalisation of SSR that let's you leave
+  a bequest. I'm not sure this is actually that useful? Maybe I should finish reading their
+  paper...
