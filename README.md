@@ -57,12 +57,6 @@ I've also included local copies of some of the Excel sheets the CSV files were d
 
 FUTURE IDEAS
 ============
-https://www.kitces.com/blog/Renaming-The-Outcomes-Of-A-Monte-Carlo-Retirement-Projection/
-- Probability of Failure should be called Probability of Adjustment
-- Probability of Success should be called Probability of Excess
-- Do a comparison of 3 states: probability of adjustment, probability of excess, and
-the Goldilocks "just right". How to define "just right"? Similar to the Sleep
-Well At Night Number...
 - Probability of failure and SIZE of failure might be different. You might
 choose the plan with the higher probability of failure because the size of
 failure is smaller.
@@ -71,6 +65,8 @@ failure is smaller.
 However, the evidence from actual retirees (Bernicke & others) shows that's
 exactly what retirees do. Have a metric that follows this?
 - Mortality-weighted shortfall calculations from Gardner's paper.
+  Except...when you do Monte Carlo with stochastic mortality, you get
+  this already.
 - Look at how bond percentages change with monthly Prime Harvesting.
 - PMT Prime.
 - Look at how valuation/expected returns in PMT does long term smoothing
@@ -83,5 +79,4 @@ exactly what retirees do. Have a metric that follows this?
   But tilt toward early retirement (a la Pye), so add +3%?.
   But still a fair amount of annual variation so have rolling 3-year average?
 - Treat SS as a bond, argument against: https://www.bogleheads.org/forum/viewtopic.php?f=10&t=200572&newpost=3072525#p3072379
-- How can Sensible Withdrawals have such a poor HREFF-3 when the floor is 3%? It seems like it should do AT LEAST as good as constant 4%?
 - Why do RMD and Sensible become more efficient when epsilon is increased to 10,000?
