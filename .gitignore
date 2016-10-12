@@ -7,3 +7,7 @@ lib/
 lib64
 share/
 pip-selfcheck.json
+
+.vscode/.ropeproject/objectdb
+
+.vscode/.ropeproject/config.py
