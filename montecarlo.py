@@ -202,7 +202,7 @@ class LowYieldsAutoRegression:
             rs[k] = calc_returns(*self.coeffs[k])
 
         if self.logging:
-            self.log.loc[year] = (y_prev, y_new, rc, rs['stocks'], rs['bonds'], rs['inflation'])
+            self.log.loc[self.year] = (y_prev, y_new, rc, rs['stocks'], rs['bonds'], rs['inflation'])
 
         self.y_prev = y_new
         self.year += 1
