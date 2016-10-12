@@ -5,24 +5,6 @@ import collections
 MALE = 0
 FEMALE = 1
 
-def gen_age(survival_function, age=65):
-    ''' Generates a final age for a couple (male + female) who are both
-    65 years old '''
-
-    return omy(True, True, age, survival_function)
-
-def omy(husband, wife, age, survive):
-    h_omy = survive(age, MALE)
-    w_omy = survive(age, FEMALE)
-
-    husband = (husband and h_omy)
-    wife = (wife and w_omy)
-
-    if husband or wife:
-        return omy(husband, wife, age + 1, survive)
-    else:
-        return age
-
 # This life table actually comes from
 # https://www.kitces.com/joint-life-expectancy-and-mortality-calculator/
 # However, upon closer inspection, the numbers don't match up with the
