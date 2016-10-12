@@ -154,6 +154,33 @@ def ssr(r):
     r_r = list(reversed(r[:-1]))
     return 1 / ssr_seq(r_r)
 
+def pwa_cumulative_return(returns):
+    return functools.reduce(operator.mul, (x+1 for x in returns))
+
+def pwa_sequence_factor(returns):
+    return functools.reduce(operator.add,
+        (functools.reduce(operator.mul,
+            (x+1 for x in returns[y:])) for y in range(len(returns))))
+
+def pwa(start_balance, end_balance, returns):
+    '''
+    From "The Perfect Withdrawal Amount" by Suarez, Suarez, and Walz (2014)
+
+    This is actually a generalisation of the ssr (above). You can pass in a starting
+    amount and a desired finishing amount.
+
+    This corresponds to Equation 3 in their paper.
+
+    Note that unlike ssr, this doesn't return a percentage of the portfolio to withdraw,
+    it returns a dollar amount.
+
+    >>> pwa(1000000, 0, [.04] * 30)
+    55605.864551597464
+    >>> pwa(1000000, 0, [-.20, .15, .15, 0, .30] * 6)
+    61263.512947893374
+    '''
+    return (start_balance * pwa_cumulative_return(returns) - end_balance) / pwa_sequence_factor(returns)
+
 def cew(cashflows, gamma = Decimal('4.0')):
     ''' Constant Equivalent Withdrawals
     Given a sequence of withdrawals, calculate what the constant-equivalent would be.
