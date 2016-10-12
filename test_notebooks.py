@@ -18,8 +18,8 @@ def _notebook_run(path):
           "--output", fout.name, path]
         subprocess.check_call(args)
 
-        fout.seek(0)
-        nb = nbformat.read(fout, nbformat.current_nbformat)
+        fout.flush()
+        nb = nbformat.read(fout.name, nbformat.current_nbformat)
 
     errors = [output for cell in nb.cells if "outputs" in cell
                      for output in cell["outputs"]\
