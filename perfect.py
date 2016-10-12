@@ -33,16 +33,24 @@ if __name__ == '__main__':
         year_factory = lambda: 45
 
         balance = 2473053
-        series = create_distribution(lambda: montecarlo.conservative[50],
-                                     balance, 0, iterations=20000,
+        bequest = 500000
+        series = create_distribution(lambda: montecarlo.LowYieldsHighValuations(),
+                                     balance, bequest, iterations=20000,
                                      year_factory=year_factory)
         #print(series.head())
 
         print('10th=', "${:,}".format(int(series.quantile(.1))))
+        print('20th=', "${:,}".format(int(series.quantile(.2))))
+        print('30th=', "${:,}".format(int(series.quantile(.3))))
+        print('40th=', "${:,}".format(int(series.quantile(.4))))
         print('50th=', "${:,}".format(int(series.quantile(.5))))
 
+        def print_pct(amount):
+            print("${:,}= ".format(amount), scipy.stats.percentileofscore(series, amount))
+
         # For a given income what percentile is it in the distribution?
-        income = 50000
-        print("${:,}= ".format(income), scipy.stats.percentileofscore(series, income))
+        print_pct(50000)
+        print_pct(75000)
+        print_pct(100000)
 
     run_main()
