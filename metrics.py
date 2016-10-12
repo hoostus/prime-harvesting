@@ -133,18 +133,13 @@ def ssr(r):
         a lower SSR means you had a worse sequence. Early bad returns are multiplied
         more often, reducing the overall SSR.
 
-        >>> from decimal import Decimal as D
-        >>> ns = [.04] * 30
-        >>> float(ssr([D(n) for n in ns]))
-        0.05560586455159744
-        >>> ns = [-.20, .15, .15, 0, .30] * 6
-        >>> float(ssr([D(n) for n in ns]))
+        >>> ssr([.04] * 30)
+        0.05560586455159746
+        >>> ssr([-.20, .15, .15, 0, .30] * 6)
         0.061263512947893395
-        >>> ns = []
-        >>> float(ssr([D(n) for n in ns]))
+        >>> ssr([])
         1.0
-        >>> ns = [.04]
-        >>> float(ssr([D(n) for n in ns]))
+        >>> ssr([.04])
         1.0
     '''
 
@@ -157,7 +152,7 @@ def ssr(r):
     # skip the final year of returns (since you have withdrawn the entire portfolio
     # at the beginning of the year, knowing that you will die this year)
     r_r = list(reversed(r[:-1]))
-    return Decimal('1') / ssr_seq(r_r)
+    return 1 / ssr_seq(r_r)
 
 def cew(cashflows, gamma = Decimal('4.0')):
     ''' Constant Equivalent Withdrawals
