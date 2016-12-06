@@ -252,6 +252,14 @@ def gompertz(current_age, live_to, female=True):
     )
     return q
 
+# I got this from "Alpha, Beta, and Now Gamma" from Blanchett et al
+def gompertz_couple(current_age, live_to):
+    female = gompertz(current_age, live_to, female=True)
+    male = gompertz(current_age, live_to, female=False)
+
+    return male + female - (male * female)
+        
+
 def probability_of_ruin(return_mean, return_stddev, life_expectancy, withdrawal_pct):
     """
     Milevsky and Robinson's Stochastic Present Value from "A sustainable
