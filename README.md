@@ -59,7 +59,7 @@ FUTURE IDEAS
 ============
 - Probability of failure and SIZE of failure might be different. You might
 choose the plan with the higher probability of failure because the size of
-failure is smaller.
+failure is smaller. See: Estrada's new paper
 - Try to tie together Prime Harvesting and valuations better.
 - CEW (and by extension WER & HREFF) punishing declining withdrawal rates.
 However, the evidence from actual retirees (Bernicke & others) shows that's
@@ -80,6 +80,9 @@ exactly what retirees do. Have a metric that follows this?
   But still a fair amount of annual variation so have rolling 3-year average?
 - Treat SS as a bond, argument against: https://www.bogleheads.org/forum/viewtopic.php?f=10&t=200572&newpost=3072525#p3072379
 - Why do RMD and Sensible become more efficient when epsilon is increased to 10,000?
-- In "The Perfect Withdrawal Amount", the provide a generalisation of SSR that let's you leave
-  a bequest. I'm not sure this is actually that useful? Maybe I should finish reading their
-  paper...
+- "Alpha, Beta, and now Gamma" includes parameters for asset classes that allows
+  use of a Truncated Levy Flight distribution to create Monte Carlo analysis. That sounds
+  fun?
+- a big literature survey on glidepaths
+- redo Blanchett's Revisiting the Optimal Distribution Glide Path with a variable withdrawal
+  strategy instead of constant withdrawals
