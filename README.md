@@ -83,6 +83,5 @@ exactly what retirees do. Have a metric that follows this?
 - "Alpha, Beta, and now Gamma" includes parameters for asset classes that allows
   use of a Truncated Levy Flight distribution to create Monte Carlo analysis. That sounds
   fun?
-- a big literature survey on glidepaths
 - redo Blanchett's Revisiting the Optimal Distribution Glide Path with a variable withdrawal
   strategy instead of constant withdrawals
