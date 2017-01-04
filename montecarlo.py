@@ -235,7 +235,6 @@ class NormalReturns:
         r = Decimal(r)
         return AnnualChange(year=self.year, stocks=r, bonds=r, inflation=Decimal(0))
 
-
 class LogNormalReturns:
     def __init__(self, mean, stddev):
         self.mean = mean
@@ -530,3 +529,24 @@ simba_stddev = [
     0.180215406,
     0.181889451,
 ]
+
+class DMSLogNormalReturns:
+    def __init__(self, dms_data):
+        self.stocks_mean = dms_data['equities'][0] / 100
+        self.stocks_stddev = dms_data['equities'][2] / 100
+        self.bonds_mean = dms_data['bonds'][0] / 100
+        self.bonds_stddev = dms_data['bonds'][2] / 100
+        self.year = 0
+
+    def __iter__(self):
+        while True:
+            self.year += 1
+            yield self.random_year()
+
+    def random_year(self):
+        s = random.lognormvariate(self.stocks_mean, self.stocks_stddev) - 1
+        s = Decimal(s)
+
+        b = random.lognormvariate(self.bonds_mean, self.bonds_stddev) - 1
+        b = Decimal(b)
+        return AnnualChange(year=self.year, stocks=s, bonds=b, inflation=Decimal(0))
