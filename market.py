@@ -54,10 +54,10 @@ class PortfolioCharts_1927:
         stock_performance = [row[x] * self.weights._asdict()[x] for x in self.asset_classes]
         stock_performance = sum(stock_performance)
         return AnnualChange(
-                year = row['Year'],
-                stocks = Decimal(stock_performance) / 100,
-                bonds = Decimal(row['IT Bonds']) / 100,
-                inflation = Decimal(row['CPI-U']) / 100
+                year=row['Year'],
+                stocks=Decimal(stock_performance) / 100,
+                bonds=Decimal(row['IT Bonds']) / 100,
+                inflation=Decimal(row['CPI-U']) / 100
         )
 
     def random_year(self):
@@ -93,10 +93,10 @@ class UK1900:
     def fmt(self, row):
         (stocks, bonds, inflation) = (Decimal(row[x]) for x in ("Real Equity", "Real Gilt", "Inflation"))
         return AnnualChange(
-                year = row['Year'],
-                stocks = stocks,
-                bonds = bonds,
-                inflation = 0 # always 0 since the others are 'real'
+                year=row['Year'],
+                stocks=stocks,
+                bonds=bonds,
+                inflation=0 # always 0 since the others are 'real'
         )
 
     def iter_from(self, year, length=None):
@@ -109,9 +109,31 @@ class UK1900:
             if length != None and count >= length:
                 raise StopIteration
 
+class US_1871_Monthly:
+    def __init__(self):
+        self.data = pandas.read_csv('US_1871_Monthly.csv', index_col=0, parse_dates=True)
+
+    def fmt(self, row):
+        return AnnualChange(
+            year=row.name.year,
+            stocks=Decimal(row['S&P %']),
+            bonds=Decimal(row['Bond %']),
+            inflation=0 # it is already reported in real terms
+        )
+
+    def iter_from(self, date, length=None):
+        count = 0
+        for row in self.data.loc[date:].iterrows():
+            yield self.fmt(row[1])
+            count += 1
+            if length and count >= length:
+                raise StopIteration
+
+
 class Returns_US_1871:
     def __init__(self, wrap=False):
-        # import US based data from 1871 from the simba backtesting spreadsheet found on bogleheads.org
+        # import US based data from 1871 from the simba backtesting
+        # spreadsheet found on bogleheads.org
         # https://www.bogleheads.org/forum/viewtopic.php?p=2753812#p2753812
         self.dataframe = pandas.read_csv('1871_returns.csv')
         self.years_of_data = len(self.dataframe)
@@ -142,10 +164,10 @@ class Returns_US_1871:
     def fmt(self, row):
         (stocks, bonds, inflation) = (Decimal(row[x]) / 100 for x in ("VFINX", "IT Bonds", "CPI-U"))
         return AnnualChange(
-                year = row['Year'],
-                stocks = stocks,
-                bonds = bonds,
-                inflation = inflation
+                year=row['Year'],
+                stocks=stocks,
+                bonds=bonds,
+                inflation=inflation
         )
 
     def iter_from(self, year, length=None):
@@ -156,5 +178,5 @@ class Returns_US_1871:
         for row in self.dataframe.iloc[start:].iterrows():
             yield self.fmt(row[1])
             count += 1
-            if length != None and count >= length:
+            if length and count >= length:
                 raise StopIteration
