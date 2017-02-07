@@ -130,6 +130,38 @@ class US_1871_Monthly:
                 raise StopIteration
 
 
+class Japan_1975:
+    def __init__(self):
+        self.dataframe = pandas.read_csv('japan-1975-2016.csv',
+                    index_col=0,
+                    dtype={'Year': int,
+                            'CPI': object,
+                            'IT Bond': object,
+                            'Equities' : object},
+                    converters={'CPI': Decimal,
+                                 'IT Bond' : Decimal,
+                                 'Equities' : Decimal})
+
+    def fmt(self, row):
+        return AnnualChange(
+                year=row.name,
+                stocks=row['Equities'],
+                bonds=row['IT Bond'],
+                inflation=row['CPI']
+        )
+
+    def iter_from(self, year, length=None):
+        start = year - 1975
+        assert start >= 0
+        assert start < 2016
+        count = 0
+        for row in self.dataframe.iloc[start:].iterrows():
+            yield self.fmt(row[1])
+            count += 1
+            if length and count >= length:
+                raise StopIteration
+
+
 class Returns_US_1871:
     def __init__(self, wrap=False):
         # import US based data from 1871 from the simba backtesting
