@@ -65,7 +65,7 @@ class Portfolio():
     def withdraw_cash(self, amount):
         assert amount <= self._cash
         self._cash -= amount
-        return self.cash
+        return amount
 
     def empty_cash(self):
         x = self.cash

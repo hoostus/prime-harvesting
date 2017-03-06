@@ -6,22 +6,15 @@ class AnnualRebalancing(HarvestingStrategy):
         super().__init__(portfolio)
         self.stock_pct = Decimal(stock_pct)
 
-    def harvest(self):
-        amount = yield
-        while True:
-            # first generate some cash
-            self.portfolio.sell_stocks(self.portfolio.stocks)
-            self.portfolio.sell_bonds(self.portfolio.bonds)
+    def do_harvest(self, amount):
+        # first generate some cash
+        self.portfolio.sell_stocks(self.portfolio.stocks)
+        self.portfolio.sell_bonds(self.portfolio.bonds)
 
-            # We can only take out however much is actually left in the portfolio
-            actual_amount = min(self.portfolio.value, amount)
-
-            new_val = self.portfolio.value - actual_amount
-            if new_val > 0:
-                self.portfolio.buy_stocks(new_val * self.stock_pct)
-                self.portfolio.buy_bonds(self.portfolio.cash - actual_amount)
-
-            amount = yield self.portfolio.empty_cash()
+        new_val = self.portfolio.value - amount
+        if new_val > 0:
+            self.portfolio.buy_stocks(new_val * self.stock_pct)
+            self.portfolio.buy_bonds(self.portfolio.cash - amount)
 
 def make_rebalancer(stock_pct):
     class Rebalancer(AnnualRebalancing):

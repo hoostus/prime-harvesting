@@ -10,23 +10,19 @@ class PrimeHarvesting(HarvestingStrategy):
     def calc_to_sell(self):
         return self.portfolio.stocks / 5
 
-    def harvest(self):
-        amount = yield
-        while True:
-            if self.stock_increase() > self._stock_ceiling:
-                to_sell = self.calc_to_sell()
-                self.portfolio.sell_stocks(to_sell)
-                self.portfolio.buy_bonds(to_sell)
+    def do_harvest(self, amount):
+        if self.stock_increase() > self._stock_ceiling:
+            to_sell = self.calc_to_sell()
+            self.portfolio.sell_stocks(to_sell)
+            self.portfolio.buy_bonds(to_sell)
 
-            bond_amount = min(amount, self.portfolio.bonds)
-            self.portfolio.sell_bonds(bond_amount)
+        bond_amount = min(amount, self.portfolio.bonds)
+        self.portfolio.sell_bonds(bond_amount)
 
-            if self.portfolio.cash < amount:
-                remainder = amount - self.portfolio.cash
-                stock_amount = min(remainder, self.portfolio.stocks)
-                self.portfolio.sell_stocks(stock_amount)
-
-            amount = yield self.portfolio.empty_cash()
+        if self.portfolio.cash < amount:
+            remainder = amount - self.portfolio.cash
+            stock_amount = min(remainder, self.portfolio.stocks)
+            self.portfolio.sell_stocks(stock_amount)
 
 class AltPrimeHarvesting(PrimeHarvesting):
     def __init__(self, portfolio):
