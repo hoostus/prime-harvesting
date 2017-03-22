@@ -33,3 +33,4 @@ class VPW(WithdrawalStrategy):
                 self.years_left += 10
 
         return self._calc()
+
