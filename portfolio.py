@@ -1,5 +1,7 @@
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 from adt import AnnualChange
+
+CENTS = Decimal('.01')
 
 class Portfolio():
     def __init__(self, stocks, bonds, cash = 0):
@@ -63,6 +65,8 @@ class Portfolio():
         return self.cash
 
     def withdraw_cash(self, amount):
+        amount = amount.quantize(CENTS, ROUND_HALF_UP)
+        self._cash = self._cash.quantize(CENTS, ROUND_HALF_UP)
         assert amount <= self._cash
         self._cash -= amount
         return amount
