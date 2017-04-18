@@ -4,6 +4,7 @@ from .bondsfirst import BondsFirst
 from .age_based import AgeBased, AgeBased_100, AgeBased_110, AgeBased_120, Glidepath
 from .omeganot import OmegaNot
 from .weiss import Weiss
+from .actuarial import ActuarialHarvesting
 
 # Alias for legacy class name.
 N_60_RebalanceHarvesting = make_rebalancer(.6)
