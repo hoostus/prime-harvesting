@@ -116,7 +116,7 @@ def wer(withdrawals, returns, fudge=Decimal('.0001')):
     '''
     c = cew([n + fudge for n in withdrawals])
     s = ssr([n + fudge for n in returns])
-    return c / s
+    return c / Decimal(s)
 
 
 def ssr(r):
