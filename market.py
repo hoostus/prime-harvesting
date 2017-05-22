@@ -80,8 +80,12 @@ class PortfolioCharts_1927:
                 raise StopIteration
 
 class UK1900:
-    def __init__(self):
-        self.dataframe = pandas.read_csv('uk1900.csv')
+    def __init__(self, wrap=False):
+        self.start_year = 1900
+        self.dataframe = pandas.read_csv('uk1900.csv', index_col=0, parse_dates=True)
+
+        if wrap:
+            self.dataframe += self.dataframe
 
     def __len__(self):
         return len(self.dataframe)
@@ -92,8 +96,13 @@ class UK1900:
 
     def fmt(self, row):
         (stocks, bonds, inflation) = (Decimal(row[x]) for x in ("Real Equity", "Real Gilt", "Inflation"))
+
+        if stocks < -1:
+            print(row)
+            import pdb;pdb.set_trace()
+
         return AnnualChange(
-                year=row['Year'],
+                year=row.name.year,
                 stocks=stocks,
                 bonds=bonds,
                 inflation=0 # always 0 since the others are 'real'
@@ -132,6 +141,7 @@ class US_1871_Monthly:
 
 class Japan_1957:
     def __init__(self):
+        self.start_year = 1957
         self.dataframe = pandas.read_csv('japan-1957-2016.csv',
                     index_col=0,
                     dtype={'Date': int,
@@ -141,6 +151,13 @@ class Japan_1957:
                     converters={'CPI Japan': Decimal,
                                  'Spliced Bond' : Decimal,
                                  'NIKKEI225' : Decimal})
+
+    def __len__(self):
+        return len(self.dataframe)
+
+    def random_year(self):
+        i = random.randint(0, len(self.dataframe) - 1)
+        return self.fmt(self.dataframe.iloc[i])
 
     def fmt(self, row):
         return AnnualChange(
@@ -199,6 +216,7 @@ class Returns_US_1871:
         # import US based data from 1871 from the simba backtesting
         # spreadsheet found on bogleheads.org
         # https://www.bogleheads.org/forum/viewtopic.php?p=2753812#p2753812
+        self.start_year = 1871
         self.dataframe = pandas.read_csv('1871_returns.csv')
         self.years_of_data = len(self.dataframe)
 
