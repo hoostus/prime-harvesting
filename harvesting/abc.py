@@ -12,5 +12,9 @@ class HarvestingStrategy(abc.ABC):
         amount = yield
         while True:
             available_amount = min(amount, self.portfolio.value)
-            self.do_harvest(available_amount)
-            amount = yield self.portfolio.withdraw_cash(amount)
+            # Skip the harvesting if there's nothing to harvest.
+            # This way we don't require every harvesting to handle the 0
+            # edge case (even though they probably are fine?)
+            if available_amount > 0:
+                self.do_harvest(available_amount)
+            amount = yield self.portfolio.withdraw_cash(available_amount)
