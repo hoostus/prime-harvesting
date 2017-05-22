@@ -97,7 +97,7 @@ def hreff(withdrawals, returns, floor=Decimal('.03'), gamma=5):
     # so we need to convert back and forth
     cew = hreff_cew_floor(floor*100, [w*100 for w in withdrawals], gamma=gamma)
     cew /= 100
-    return cew / ssr(returns)
+    return cew / Decimal(ssr(returns))
 
 def wer(withdrawals, returns, fudge=Decimal('.0001')):
     ''' Withdrawal Efficiency Rate
