@@ -1,7 +1,7 @@
 from .mcclung import PrimeHarvesting, AltPrimeHarvesting
 from .annual_rebalance import AnnualRebalancing, make_rebalancer
 from .bondsfirst import BondsFirst
-from .age_based import AgeBased, AgeBased_100, AgeBased_110, AgeBased_120, Glidepath
+from .age_based import AgeBased, AgeBased_100, AgeBased_110, AgeBased_120, Glidepath, InverseGlidepath
 from .omeganot import OmegaNot
 from .weiss import Weiss
 from .actuarial import ActuarialHarvesting
@@ -15,3 +15,6 @@ N_100_RebalanceHarvesting.__name__ = '100% Stocks'
 
 N_35_RebalanceHarvesting = make_rebalancer(.35)
 N_35_RebalanceHarvesting.__name__ = '35% Stocks'
+
+N_0_RebalanceHarvesting = make_rebalancer(0)
+N_0_RebalanceHarvesting.__name__ = '0% Stocks'

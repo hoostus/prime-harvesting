@@ -44,6 +44,16 @@ class Glidepath(AgeBased):
         super().__init__(portfolio, 100)
 
     def get_stock_pct(self):
-        n = self.n - self.age
+        n = max(10, self.n - self.age)
         n = math.log(n, 10)
         return Decimal(n - 1)
+
+class InverseGlidepath(AgeBased):
+    def __init__(self, portfolio):
+        super().__init__(portfolio, 100)
+
+    def get_stock_pct(self):
+        n = max(10, self.n - self.age)
+        n = math.log(n, 10)
+        bond_pct = Decimal(n - 1)
+        return 1 - bond_pct
