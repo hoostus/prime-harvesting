@@ -18,3 +18,28 @@ from .floor_ceiling import FloorCeiling
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
+
+from .abc import WithdrawalStrategy
+
+class BankWrapper(WithdrawalStrategy):
+    def __init__(self, wrapped_strategy):
+        super().__init__(wrapped_strategy.portfolio, wrapped_strategy.harvest)
+        self.wrapped_strategy = wrapped_strategy
+
+    def start(self):
+        self.starting_withdrawal = self.wrapped_strategy.start()
+        return self.starting_withdrawal
+
+    def next(self):
+        next_withdrawal = self.wrapped_strategy.next()
+
+        inflation_adjusted_starting = self.portfolio.inflation * self.starting_withdrawal
+        current_excess = next_withdrawal - inflation_adjusted_starting
+
+        # if current_excess > 0 and 'set_excess' in self.wrapped_strategy.harvest.dict():
+        #     self.wrapped_strategy.harvest.set_excess(current_excess)
+
+        return min(next_withdrawal, inflation_adjusted_starting)
+
+VPWBank = lambda portfolio, harvest_strategy: BankWrapper(VPW(portfolio, harvest_strategy))
+VPWBank.__name__ = 'VPWBank'
