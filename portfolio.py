@@ -13,6 +13,11 @@ class Portfolio():
         self._stocks_real_gain = Decimal('1.0')
         self.inflation = Decimal('1.0')
 
+    def __repr__(self):
+        def fmt(number):
+            return "${:,}".format(number)
+        return '%s : %s | %s' % (fmt(self.value), fmt(self.stocks), fmt(self.bonds))
+
     @property
     def starting_stocks_real(self):
         return self._starting_stocks * self.inflation
@@ -69,9 +74,11 @@ class Portfolio():
         self._cash = self._cash.quantize(CENTS, ROUND_HALF_UP)
         assert amount <= self._cash
         self._cash -= amount
+
         return amount
 
     def empty_cash(self):
+        assert self.cash >= 0
         x = self.cash
         self._cash = 0
         return x
@@ -86,18 +93,21 @@ class Portfolio():
         assert amount <= self._cash, "amount %d cash %d" % (amount, self._cash)
         self._stocks += amount
         self._cash -= amount
+
         return self.cash
 
     def sell_bonds(self, amount):
         assert amount <= self._bonds, "amount %d bonds %d" % (amount, self._bonds)
         self._bonds -= amount
         self._cash += amount
+
         return self.cash
 
     def buy_bonds(self, amount):
         assert amount <= self._cash, "amount %d cash %d" % (amount, self._cash)
         self._bonds += amount
         self._cash -= amount
+
         return self.cash
 
     def adjust_returns(self, change):
@@ -107,6 +117,7 @@ class Portfolio():
         self._stocks *= 1 + change.stocks
         self._stocks_real_gain *= 1 + (change.stocks - change.inflation)
         self.inflation *= (1 + change.inflation)
+
         if prev_value != 0:
             gains = (self.value - prev_value) / prev_value
         else:
