@@ -30,7 +30,7 @@ class VPW(WithdrawalStrategy):
 
         if self.replan:
             if self.years_left < 15:
-                self.years_left += 10
+                self.years_left += 5
 
         return self._calc()
 
