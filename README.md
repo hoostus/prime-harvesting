@@ -85,3 +85,4 @@ exactly what retirees do. Have a metric that follows this?
   fun?
 - redo Blanchett's Revisiting the Optimal Distribution Glide Path with a variable withdrawal
   strategy instead of constant withdrawals
+- Implement the Ulcer Index http://www.tangotools.com/ui/ui.htm
