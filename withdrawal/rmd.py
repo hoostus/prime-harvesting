@@ -37,7 +37,7 @@ class IRS_RMD(WithdrawalStrategy):
 
     def _calc(self):
         assert self.current_age >= 65
-        lookup = min(self.current_age - 65, 115)
+        lookup = min(self.current_age - 65, 114)
         w = self.rmd_table[lookup]
         amount = self.portfolio.value * w
         self.current_age += 1
