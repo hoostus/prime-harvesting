@@ -20,7 +20,7 @@ class Guyton(WithdrawalStrategy):
     def next(self):
         # If the portfolio has been exhausted, let's skip all
         # calculations below, some of which can result in ZeroDivisionError
-        if self.portfolio.value == 0: return 0
+        if self.portfolio.value == 0: return Decimal(0)
 
         current_amount = self.previous_withdrawal_amount
         current_rate = current_amount / self.portfolio.value
