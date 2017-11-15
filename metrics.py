@@ -19,6 +19,15 @@ def min(xs):
 def max(xs):
     return builtins.max([float(x) for x in xs])
 
+def semideviation(frame, goal=None):
+    if not goal:
+        goal = frame.mean()
+    values = frame[lambda s: s < goal]
+    if len(values) == 0: return 0
+    sumvalues = sum(((goal - v) ** 2 for v in values))
+    average = sumvalues / len(values)
+    return math.sqrt(average)
+
 # Yet another helper function to deal with float/Decimal conversion issues :(
 # I feel like I should have just used float...
 def pmt(rate, nper, pv):
