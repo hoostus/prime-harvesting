@@ -59,6 +59,6 @@ class RetrenchmentRule(WithdrawalStrategy):
             else:
                 # We've reached the end of Pye's PMT calculations...
                 # What do we do next?
-                withdrawal = 0
+                withdrawal = Decimal(0)
 
             return withdrawal
