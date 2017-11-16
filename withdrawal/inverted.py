@@ -21,6 +21,10 @@ class TiltCapital(WithdrawalStrategy):
         self.desired_payment = self.portfolio.value * Decimal('.04')
 
     def _calc(self):
+        # shortcut if the portfolio is 0...some of the math
+        # below doesn't like 0s.
+        if self.portfolio.value == 0:
+            return Decimal(0)
         amount = pmt(self.rate, self.final_age - self.current_age, self.portfolio.value)
         desired_pmt = self.desired_payment * self.cumulative_inflation
         desired_value = pv(float(self.rate), self.final_age - self.current_age, float(-desired_pmt), when='begin')
