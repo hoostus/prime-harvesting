@@ -8,7 +8,7 @@ import pandas
 # used directly. Instead they need to wrap another algorithm.
 
 # Note: some withdrawal algorithms ALREADY do income smoothing. These should
-# only be used with withdrawal algorithsm that don't provide their own
+# only be used with withdrawal algorithms that don't provide their own
 # smoothing.
 
 class SteinerSmoothing(WithdrawalStrategy):
@@ -78,12 +78,12 @@ class LonginvestSmoothing(WithdrawalStrategy):
 
 class RollingAverageSmoothing(WithdrawalStrategy):
     """ Take a rolling average of the last N years """
-    def __init__(self, real_withdrawal_strategy):
+    def __init__(self, real_withdrawal_strategy, n=3):
         super().__init__(real_withdrawal_strategy.portfolio,
             real_withdrawal_strategy.harvest)
 
         self.strategy = real_withdrawal_strategy
-        self.lookback = deque(maxlen=3)
+        self.lookback = deque(maxlen=n)
 
     def start(self):
         amount = self.strategy.start()
