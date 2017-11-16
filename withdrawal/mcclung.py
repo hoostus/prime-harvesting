@@ -4,9 +4,9 @@ from .mufp import get_extended_mufp
 
 class EM(WithdrawalStrategy):
     DEFAULT_SCALE_RATE = Decimal('.95')
-    DEFAULT_FLOOR_RATE = Decimal('.025')
+    DEFAULT_FLOOR_RATE = Decimal('.0225')
     DEFAULT_CAP_RATE = Decimal('1.5')
-    DEFAULT_INITIAL_WITHDRAWAL_RATE = Decimal('.05')
+    DEFAULT_INITIAL_WITHDRAWAL_RATE = Decimal('.045')
 
     def __init__(self, portfolio, harvest_strategy,
                  scale_rate=DEFAULT_SCALE_RATE,
