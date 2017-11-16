@@ -35,7 +35,9 @@ class SimpleFormula(WithdrawalStrategy):
         return self._calc()
 
     def rmd(self, years):
-        return Decimal(1) / years
+        # Add a cap to the RMDs so it never takes more than 20% of the portfolio
+        # This keeps the strategy sensible at advanced ages
+        return max(Decimal(1) / years, Decimal('.20'))
 
     def get_pct(self, years):
         if years < 1:
