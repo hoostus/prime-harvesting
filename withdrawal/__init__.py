@@ -15,6 +15,7 @@ from .vanguard import Vanguard
 from .clyatt import Clyatt
 from .guyton import Guyton
 from .floor_ceiling import FloorCeiling
+from .ern import CAPEPercentage
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
