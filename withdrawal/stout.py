@@ -52,7 +52,8 @@ class Model3(WithdrawalStrategy):
                     downward_rate_adjustment = 1,
                     ceiling_rate = .4,
                     floor_rate = .03,
-                    start_age = 65):
+                    start_age = 65,
+                    start_rate = 0.045):
         super().__init__(portfolio, harvest_strategy)
 
         self.up_threshold = Decimal(up_threshold)
@@ -64,7 +65,7 @@ class Model3(WithdrawalStrategy):
         self.current_age = start_age
 
         # It isn't entirely clear but Stout & Mitchell seem to start with this
-        self.current_rate = Decimal('.045')
+        self.current_rate = Decimal(start_rate)
 
     def get_life_expectancy(self):
         return mortality.life_expectancy(None, self.current_age)
