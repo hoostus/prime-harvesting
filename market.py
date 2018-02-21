@@ -97,15 +97,11 @@ class UK1900:
     def fmt(self, row):
         (stocks, bonds, inflation) = (Decimal(row[x]) for x in ("Real Equity", "Real Gilt", "Inflation"))
 
-        if stocks < -1:
-            print(row)
-            import pdb;pdb.set_trace()
-
         return AnnualChange(
                 year=row.name.year,
-                stocks=stocks,
-                bonds=bonds,
-                inflation=0 # always 0 since the others are 'real'
+                stocks=stocks + inflation,
+                bonds=bonds + inflation,
+                inflation=inflation
         )
 
     def iter_from(self, year, length=None):
