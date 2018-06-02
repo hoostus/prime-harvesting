@@ -112,7 +112,9 @@ class CAPE10Smoothing(WithdrawalStrategy):
         self.year = start_year
 
     def get_cape(self):
-        return self.df.iloc[self.year - self.BASE_YEAR]["CAPE10"]
+        # the -1 is because we can only check the previous year's CAPE...
+        # we don't yet know this year's CAPE, and won't until the year is over.
+        return self.df.iloc[self.year - self.BASE_YEAR - 1]["CAPE10"]
 
     def get_inv_cape(self):
         return Decimal(1/self.get_cape())# + Decimal('.03')
