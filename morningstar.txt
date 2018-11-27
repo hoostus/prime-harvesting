@@ -1,0 +1,29 @@
+HOW TO FIND SecId and DataId												
+												
+Typical approach for SecId (fund, ETF or individual security):												
+	- search the fund/security symbol on Morningstar											
+	- display the 'chart' page (use the mutual fund display, not the ETF display)						http://quotes.morningstar.com/chart/fund/chart?t=XXX&region=usa&culture=en_US					
+	- restrict to the item of interest, removing benchmarks from the chart's display											
+	- copy the Share URL in a text file (e.g. Notepad)											
+	- deep in there, you'll find the id, something like: id%22%3A%22FOUSA00FQU											
+	- to sanity check that this is indeed the right data series, you can use the secId in lieu of the fund symbol in the chart URL regular query											
+												
+Another possible approach for tough cases:												
+	- search the symbol on Morningstar											
+	- display the 'quote' page											
+	- visualize the page source code (MacOS: View, Developer, View Source)											
+	- search for 'SecId'											
+												
+Index SecId:	- go to Morningstar's home page, skip annoying ads											
+	- use keywords in the search box to find TR or GR series (for total returns)											
+	- look at 'View All Results', then 'View All US Securities Results' when results are ambiguous											
+	- it takes a bit of practice due to strange abbreviations (e.g. BbgBarc for Bloomberg Barclays)...											
+												
+												
+Known Dataid:	8225	Index only (Total Return)										
+	117	Index, mutual fund or ETF or individual security (Total Return)										
+	8217	Index, mutual fund or ETF or individual security (Price only)										
+												
+	8211	Total Returns WITHOUT subtracting the expense ratio					(hence a way to derive old expenses ratios, works as far as the security goes, better than M* Direct!)					
+	8233	Market cap for securities (in absolute $)										
+	9390	SEC Yield										
