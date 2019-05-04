@@ -17,6 +17,7 @@ from .guyton import Guyton
 from .floor_ceiling import FloorCeiling
 from .ern import CAPEPercentage
 from .add import ADD
+from .researchmed import ResearchMed
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar
@@ -45,3 +46,14 @@ class BankWrapper(WithdrawalStrategy):
 
 VPWBank = lambda portfolio, harvest_strategy: BankWrapper(VPW(portfolio, harvest_strategy))
 VPWBank.__name__ = 'VPWBank'
+
+def make_constantdollar(rate):
+    return type('ConstantDollar_%s' % rate, (ConstantDollar,), {
+        '__init__' : lambda self, portfolio, harvesting: ConstantDollar.__init__(self, portfolio, harvesting, rate=rate)
+    })
+
+def make_vpw(length):
+    return type('VPW_%s' % length, (VPW,), {
+        '__init__' : lambda self, portfolio, harvesting: VPW.__init__(self, portfolio, harvesting, years_left=length)
+    })
+
