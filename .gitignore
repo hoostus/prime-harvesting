@@ -16,8 +16,6 @@ oecd_10-4_returns.csv
 oecd_bond_returns.csv
 WERCOMP-returns.csv
 bonds-monthly-annual.csv
-bonds-monthly-australia-rba.csv
-bonds-monthly-japan-fred.csv
 bonds-monthly.csv
 WERCOMP-*.csv
 .pytest_cache/v/cache/nodeids
