@@ -19,6 +19,12 @@ def min(xs):
 def max(xs):
     return builtins.max([float(x) for x in xs])
 
+def cagr(xs):
+    periods = len(xs)
+    first = 1000
+    last = functools.reduce(lambda x,y: x * (1+y), xs, first)
+    return (last/first) ** (1/periods) - 1
+
 def semideviation(frame, goal=None):
     if not goal:
         goal = frame.mean()
