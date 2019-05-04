@@ -273,7 +273,6 @@ def gompertz_couple(current_age, live_to):
     male = gompertz(current_age, live_to, female=False)
 
     return male + female - (male * female)
-        
 
 def probability_of_ruin(return_mean, return_stddev, life_expectancy, withdrawal_pct):
     """
@@ -292,11 +291,11 @@ def probability_of_ruin(return_mean, return_stddev, life_expectancy, withdrawal_
     >>> probability_of_ruin(.07, .20, 28.1, .05)
     0.26785503502422264
     >>> probability_of_ruin(.0520, .1182, 22.30, .04)
-    0.097782639821254749
+    0.09778263982125475
     >>> probability_of_ruin(.0470, .1382, 22.30, .04)
-    0.15435694850153159
+    0.1543569485015316
     >>> probability_of_ruin(.049, .10, 22.30, .04)
-    0.089454318224481758
+    0.08945431822448176
     """
     mortality_rate = math.log(2) / life_expectancy
     alpha = ((2 * return_mean) + (4 * mortality_rate))
