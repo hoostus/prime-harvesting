@@ -11,8 +11,6 @@ pip-selfcheck.json
 .vscode/.ropeproject/config.py
 .cache/v/cache/lastfailed
 data-cache.sqlite
-oecd_10-1_returns.csv
-oecd_10-4_returns.csv
 oecd_bond_returns.csv
 WERCOMP-returns.csv
 bonds-monthly-annual.csv
