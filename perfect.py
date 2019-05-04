@@ -111,6 +111,22 @@ def make_table():
         }
     df.to_csv('pwa_all.csv')
 
+def one_run():
+    import montecarlo
+    import mortality
+    import scipy.stats
+
+    y1 = create_distribution(lambda: montecarlo.historical[60], 750000, 0, iterations=20000, year_factory=lambda: 30)
+    y2 = create_distribution(lambda: montecarlo.historical[60], 691830, 0, iterations=20000, year_factory=lambda: 29)
+
+    pct1 = scipy.stats.percentileofscore(y1, 30000)
+    print(pct1)
+    pct2 = scipy.stats.percentileofscore(y2, 30654)
+    print(pct2)
+
+    quantile2 = y2.quantile(pct1/100)
+    print(quantile2)
+
 def run_main():
     """ For command line testing. """
     import montecarlo
@@ -157,5 +173,5 @@ def run_main():
 if __name__ == '__main__':
     #run_main()
     #make_table()
-    sim_lots()
-
+    #sim_lots()
+    one_run()
