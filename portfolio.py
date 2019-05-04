@@ -1,4 +1,4 @@
-from decimal import Decimal, ROUND_HALF_UP
+from decimal import Decimal, ROUND_HALF_UP, ROUND_HALF_DOWN
 from adt import AnnualChange
 
 CENTS = Decimal('.01')
@@ -53,6 +53,11 @@ class Portfolio():
         else: return self._bonds / self.value
 
     @property
+    def cash_pct(self):
+        if self.value == 0: return Decimal(0)
+        else: return self._cash / self.value
+
+    @property
     def cash(self):
         return self._cash
 
@@ -70,7 +75,7 @@ class Portfolio():
         return self.cash
 
     def withdraw_cash(self, amount):
-        amount = amount.quantize(CENTS, ROUND_HALF_UP)
+        amount = amount.quantize(CENTS, ROUND_HALF_DOWN)
         self._cash = self._cash.quantize(CENTS, ROUND_HALF_UP)
         assert amount <= self._cash
         self._cash -= amount
@@ -113,10 +118,10 @@ class Portfolio():
     def adjust_returns(self, change):
         assert isinstance(change, AnnualChange)
         prev_value = self.value
-        self._bonds *= 1 + change.bonds
-        self._stocks *= 1 + change.stocks
-        self._stocks_real_gain *= 1 + (change.stocks - change.inflation)
-        self.inflation *= (1 + change.inflation)
+        self._bonds *= 1+change.bonds
+        self._stocks *= 1+change.stocks
+        self._stocks_real_gain *= (1+change.stocks) / (1+change.inflation)
+        self.inflation *= 1+change.inflation
 
         if prev_value != 0:
             gains = (self.value - prev_value) / prev_value
