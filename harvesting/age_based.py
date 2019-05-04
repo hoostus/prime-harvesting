@@ -10,7 +10,8 @@ class AgeBased(HarvestingStrategy):
         self.age = starting_age
 
     def get_stock_pct(self):
-        return Decimal(self.n - self.age) / 100
+        pct = max(0, self.n - self.age)
+        return Decimal(pct) / 100
 
     def do_harvest(self, amount):
         # first generate some cash
