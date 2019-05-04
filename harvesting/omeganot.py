@@ -2,7 +2,10 @@ from .abc import HarvestingStrategy
 from decimal import Decimal
 
 class OmegaNot(HarvestingStrategy):
-    _stock_ceiling = Decimal('1')
+    def __init__(self, portfolio, ceiling=Decimal('1')):
+            super().__init__(portfolio)
+            self._stock_ceiling = ceiling
+            self.__name__ = 'OmegaNot (ceiling=%s)' % ceiling
 
     def stock_increase(self):
         return self.portfolio.stocks / self.portfolio.starting_stocks_real

@@ -6,6 +6,12 @@ class AnnualRebalancing(HarvestingStrategy):
         super().__init__(portfolio)
         self.stock_pct = Decimal(stock_pct)
 
+        # the portfolio given to us might be balanced....so do that first
+        self.portfolio.sell_stocks(self.portfolio.stocks)
+        self.portfolio.sell_bonds(self.portfolio.bonds)
+        self.portfolio.buy_stocks(self.portfolio.value * self.stock_pct)
+        self.portfolio.buy_bonds(self.portfolio.cash)
+
     def do_harvest(self, amount):
         # first generate some cash
         self.portfolio.sell_stocks(self.portfolio.stocks)
@@ -16,8 +22,3 @@ class AnnualRebalancing(HarvestingStrategy):
             self.portfolio.buy_stocks(new_val * self.stock_pct)
             self.portfolio.buy_bonds(self.portfolio.cash - amount)
 
-def make_rebalancer(stock_pct):
-    class Rebalancer(AnnualRebalancing):
-        def __init__(self, portfolio):
-            super().__init__(portfolio, stock_pct)
-    return Rebalancer
