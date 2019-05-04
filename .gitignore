@@ -37,3 +37,4 @@ bonds-monthly.csv
 oecd_bond_returns.csv
 
 WERCOMP-*.csv
+.pytest_cache/v/cache/nodeids
