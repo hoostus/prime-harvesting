@@ -302,6 +302,37 @@ def probability_of_ruin(return_mean, return_stddev, life_expectancy, withdrawal_
 
     return gamma.cdf(withdrawal_pct, alpha, scale=beta)
 
+def ulcer(series):
+    """ Ulcer Index (UI) is a method for measuring investment risk that
+    addresses the real concerns of investors, unlike the widely used standard
+    deviation of return (SD). UI is a measure of the depth and duration of
+    drawdowns in prices from earlier highs.
+
+    http://www.tangotools.com/ui/ui.htm 
+
+    Technically, it is the square root of the mean of the squared percentage
+    drawdowns in value. The squaring effect penalizes large drawdowns
+    proportionately more than small drawdowns (the SD calculation also uses squaring).
+
+    The result is a percentage. (i.e. between 0 & 1, much like stdev)
+
+    >>> ulcer([352.2, 339.93, 339.15, 325.8, 330.92])
+    0.04869460765086824
+    >>> ulcer([335.54, 337.93, 341.91, 337.22, 339.94, 340.08, 344.34])
+    0.00597617248960636
+    """
+
+    sumsq = 0
+    maxvalue = 0
+    for value in [float(n) for n in series]:
+        if value > maxvalue:
+            maxvalue = builtins.max(value, maxvalue) # use local version of max to handle Decimals
+        else:
+            drawdown = (100 * ((value / maxvalue) - 1))
+            sq = drawdown ** 2
+            sumsq += sq
+    return math.sqrt(sumsq / len(series)) / 100
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
