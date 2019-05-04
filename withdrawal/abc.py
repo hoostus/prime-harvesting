@@ -1,6 +1,7 @@
 import abc
 from decimal import Decimal
 from adt import report, AnnualChange
+import adt
 
 class WithdrawalStrategy(abc.ABC):
     def __init__(self, portfolio, harvest_strategy):
@@ -17,6 +18,8 @@ class WithdrawalStrategy(abc.ABC):
         raise NotImplementedError("The method not implemented")
 
     def withdrawals(self):
+#        portfolio_pre = adt.snapshot_portfolio(portfolio)
+
         withdrawal = self.start()
 
         actual_withdrawal = self.harvest.send(withdrawal)
