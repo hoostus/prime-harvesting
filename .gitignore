@@ -12,9 +12,6 @@ pip-selfcheck.json
 .cache/v/cache/lastfailed
 data-cache.sqlite
 oecd_bond_returns.csv
-WERCOMP-returns.csv
-bonds-monthly-annual.csv
-bonds-monthly.csv
 WERCOMP-*.csv
 .pytest_cache/v/cache/nodeids
 */.ipynb_checkpoints/*
