@@ -17,7 +17,6 @@ from .guyton import Guyton
 from .floor_ceiling import FloorCeiling
 from .ern import CAPEPercentage
 from .add import ADD
-from .researchmed import ResearchMed
 
 # Provide an alias from the modern name to the historical name
 ConstantWithdrawals = ConstantDollar

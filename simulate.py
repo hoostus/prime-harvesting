@@ -11,19 +11,16 @@ def withdrawals(series,
                 harvesting=PrimeHarvesting,
                 withdraw=EM):
     portfolio = Portfolio(portfolio[0], portfolio[1])
-    strategy = harvesting(portfolio).harvest()
-    strategy.send(None)
-    withdrawal_strategy = withdraw(portfolio, strategy).withdrawals()
+    harvest_g = harvesting(portfolio).harvest()
+    # You have to send None to a just-started generator.
+    harvest_g.send(None)
+    withdraw_g = withdraw(portfolio, harvest_g).withdrawals()
+    withdraw_g.send(None)
+
     annual = []
 
-    # Withdrawals happen at the start of the year, so the first time
-    # we don't have any performance data to send them....
-    data = withdrawal_strategy.send(None)
-    annual.append(data)
-    years -= 1
-
     for _, d in zip(range(years), series):
-        data = withdrawal_strategy.send(d)
+        data = withdraw_g.send(d)
         annual.append(data)
     return annual
 
