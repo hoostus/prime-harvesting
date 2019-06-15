@@ -68,21 +68,15 @@ exactly what retirees do. Have a metric that follows this?
   Except...when you do Monte Carlo with stochastic mortality, you get
   this already.
 - Look at how bond percentages change with monthly Prime Harvesting.
-- PMT Prime.
 - Look at how valuation/expected returns in PMT does long term smoothing
 - Try putting Pye's higher rate with Siegel & Waring's average lifespan
   Does it tilt TOO much towards early income?
 - Map early income tilts from PMT shapes against Bernicke & Blanchett's
   research on actual retiree spending.
 - Walton's paper on inverted withdrawals
-- Smoothing: CAPE10 to set discount rate (a la Steiner) for "long term" smoothing.
-  But tilt toward early retirement (a la Pye), so add +3%?.
-  But still a fair amount of annual variation so have rolling 3-year average?
 - Treat SS as a bond, argument against: https://www.bogleheads.org/forum/viewtopic.php?f=10&t=200572&newpost=3072525#p3072379
-- Why do RMD and Sensible become more efficient when epsilon is increased to 10,000?
 - "Alpha, Beta, and now Gamma" includes parameters for asset classes that allows
   use of a Truncated Levy Flight distribution to create Monte Carlo analysis. That sounds
   fun?
 - redo Blanchett's Revisiting the Optimal Distribution Glide Path with a variable withdrawal
   strategy instead of constant withdrawals
-- Implement the Ulcer Index http://www.tangotools.com/ui/ui.htm
