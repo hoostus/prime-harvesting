@@ -1,7 +1,7 @@
 from .mcclung import PrimeHarvesting, AltPrimeHarvesting
 from .annual_rebalance import AnnualRebalancing
 from .bondsfirst import BondsFirst
-from .age_based import AgeBased, AgeBased_100, AgeBased_110, AgeBased_120, Glidepath, InverseGlidepath
+from .age_based import AgeBased, AgeBased_100, AgeBased_110, AgeBased_120, Glidepath, InverseGlidepath, ParameterGlidepath
 from .omeganot import OmegaNot
 from .weiss import Weiss
 from .actuarial import ActuarialHarvesting

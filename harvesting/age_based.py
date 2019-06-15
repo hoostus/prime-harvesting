@@ -64,3 +64,19 @@ class InverseGlidepath(AgeBased):
         n = math.log(n, 10)
         bond_pct = Decimal(n - 1)
         return 1 - bond_pct
+
+class ParameterGlidepath(AgeBased):
+    def __init__(self, portfolio, start, end, years):
+        self.start = start
+        self.end = end
+        self.years = years
+        self.increment = (end - start) / years
+
+        super().__init__(portfolio, 65 + years)
+
+    def get_stock_pct(self):
+        step = self.age - 65
+        n = min(step, self.years)
+        inc = n * self.increment
+        stock_pct = Decimal(self.start + inc)
+        return stock_pct
