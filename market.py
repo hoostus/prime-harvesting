@@ -79,6 +79,49 @@ class PortfolioCharts_1927:
             if length != None and count >= length:
                 raise StopIteration
 
+class JST:
+    """ The Jordà-Schularick-Taylor Macrohistory Database stata file containing
+        country data from "The Return of Everything"
+        http://www.macrohistory.net/data/
+    """ 
+    def __init__(self, country):
+        df = pandas.read_stata('JSTdatasetR4.dta')
+        # the year comes through as a float for some reason...coerce back to int
+        df['year'] = df['year'].astype(int)
+        df = df[df['iso'] == country]
+        df = df[['year', 'iso', 'eq_tr', 'bond_tr']]
+        df = df.dropna()
+
+        self.start_year = df['year'].min()
+        self.last_year = df['year'].max()
+
+        self.data = df
+
+    def __len__(self):
+        return len(self.data)
+
+    def fmt(self, row):
+        # the database only provides the consumer price index level, not the
+        # annual change. I don't feel like going back and calculating it.
+        return AnnualChange(
+            year=row.year,
+            stocks=row.eq_tr,
+            bonds=row.bond_tr,
+            inflation=0
+        )
+
+    def iter_from(self, year, length=None):
+        assert year >= self.start_year
+        if length:
+            assert (year+length) <= self.last_year
+
+        count = 0
+        for row in self.data[self.data['year'] >= year].iterrows():
+            yield self.fmt(row[1])
+            count += 1
+            if length != None and count >= length:
+                return
+
 class UK1900:
     def __init__(self, wrap=False):
         self.start_year = 1900
@@ -112,7 +155,7 @@ class UK1900:
             yield self.fmt(row[1])
             count += 1
             if length != None and count >= length:
-                raise StopIteration
+                return
 
 class US_1871_Monthly:
     def __init__(self):
@@ -172,7 +215,7 @@ class Japan_1957:
             yield self.fmt(row[1])
             count += 1
             if length and count >= length:
-                raise StopIteration
+                return
 
 
 class Japan_1975:
@@ -204,7 +247,7 @@ class Japan_1975:
             yield self.fmt(row[1])
             count += 1
             if length and count >= length:
-                raise StopIteration
+                return
 
 
 class Returns_US_1871:
@@ -257,4 +300,4 @@ class Returns_US_1871:
             yield self.fmt(row[1])
             count += 1
             if length and count >= length:
-                raise StopIteration
+                return
