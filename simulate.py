@@ -2,11 +2,15 @@ from accumulation import N_80_RebalanceAccumulation
 from harvesting import PrimeHarvesting
 from withdrawal import EM
 from portfolio import Portfolio
-from decimal import Decimal
 from adt import YearlyResults
+import market
+
+from decimal import Decimal
+import pandas
+import numpy
 
 def withdrawals(series,
-                portfolio=(600000, 400000),
+                portfolio=(600_000, 400_000),
                 years=40,
                 harvesting=PrimeHarvesting,
                 withdraw=EM):
@@ -23,6 +27,21 @@ def withdrawals(series,
         data = withdraw_g.send(d)
         annual.append(data)
     return annual
+
+def calc_lens(harvesting, withdraw, years, lens, portfolio=(600_000, 400_000)):
+    MARKET = market.Returns_US_1871()
+    end_year = 2018 - years + 1
+    series = pandas.Series(index=numpy.arange(MARKET.start_year, end_year))
+
+    for start in range(MARKET.start_year, end_year):
+        annual_data = withdrawals(MARKET.iter_from(start),
+                                           portfolio=portfolio,
+                                           years=years,
+                                           harvesting=harvesting,
+                                           withdraw=withdraw)
+        d = lens(annual_data)
+        series.loc[start] = d
+    return series
 
 # Provide alias to legacy name.
 simulate_withdrawals = withdrawals
