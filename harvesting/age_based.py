@@ -9,6 +9,12 @@ class AgeBased(HarvestingStrategy):
         self.n = n
         self.age = starting_age
 
+        # the portfolio given to us might be balanced....so do that first
+        self.portfolio.sell_stocks(self.portfolio.stocks)
+        self.portfolio.sell_bonds(self.portfolio.bonds)
+        self.portfolio.buy_stocks(self.portfolio.value * self.get_stock_pct())
+        self.portfolio.buy_bonds(self.portfolio.cash)
+
     def get_stock_pct(self):
         pct = max(0, self.n - self.age)
         return Decimal(pct) / 100
