@@ -83,17 +83,26 @@ class JST:
     """ The Jordà-Schularick-Taylor Macrohistory Database stata file containing
         country data from "The Return of Everything"
         http://www.macrohistory.net/data/
-    """ 
+    """
+
+    Countries = ['AUS', 'BEL', 'CAN', 'DNK', 'FIN', 'FRA', 'DEU', 'ITA', 'JPN',
+       'NLD', 'NOR', 'PRT', 'ESP', 'SWE', 'CHE', 'GBR', 'USA']
+
     def __init__(self, country):
         df = pandas.read_stata('JSTdatasetR4.dta')
         # the year comes through as a float for some reason...coerce back to int
         df['year'] = df['year'].astype(int)
         df = df[df['iso'] == country]
-        df = df[['year', 'iso', 'eq_tr', 'bond_tr']]
+        df = df[['year', 'iso', 'eq_tr', 'bond_tr', 'cpi']]
+
+        # the 'cpi' is a CPI-level...not a year-over-year change. ugh.
+        df['cpi'] = (df['cpi'] / df['cpi'].shift(1)) - 1
         df = df.dropna()
 
         self.start_year = df['year'].min()
         self.last_year = df['year'].max()
+        self.country = country
+
 
         self.data = df
 
@@ -105,9 +114,9 @@ class JST:
         # annual change. I don't feel like going back and calculating it.
         return AnnualChange(
             year=row.year,
-            stocks=row.eq_tr,
-            bonds=row.bond_tr,
-            inflation=0
+            stocks=Decimal(row.eq_tr),
+            bonds=Decimal(row.bond_tr),
+            inflation=Decimal(row.cpi)
         )
 
     def iter_from(self, year, length=None):
@@ -216,7 +225,6 @@ class Japan_1957:
             count += 1
             if length and count >= length:
                 return
-
 
 class Japan_1975:
     def __init__(self):
