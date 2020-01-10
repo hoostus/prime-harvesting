@@ -9,7 +9,7 @@ class AgeBased(HarvestingStrategy):
         self.n = n
         self.age = starting_age
 
-        # the portfolio given to us might be balanced....so do that first
+        # the portfolio given to us might be un-balanced....so do that first
         self.portfolio.sell_stocks(self.portfolio.stocks)
         self.portfolio.sell_bonds(self.portfolio.bonds)
         self.portfolio.buy_stocks(self.portfolio.value * self.get_stock_pct())
@@ -29,9 +29,9 @@ class AgeBased(HarvestingStrategy):
 
         new_val = self.portfolio.value - actual_amount
         if new_val > 0:
-            self.portfolio.buy_stocks(new_val * self.get_stock_pct())
+            stocks = self.get_stock_pct()
+            self.portfolio.buy_stocks(new_val * stocks)
             self.portfolio.buy_bonds(self.portfolio.cash - actual_amount)
-
         self.age += 1
 
 class AgeBased_100(AgeBased):
