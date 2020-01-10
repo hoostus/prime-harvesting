@@ -42,9 +42,9 @@ class WithdrawalStrategy(abc.ABC):
             results = self.update_world(change, portfolio_pre, actual_withdrawal)
             change = yield results
 
-            portfolio_pre = adt.snapshot_portfolio(self.portfolio)
             withdrawal = self.next()
             actual_withdrawal = self.harvest.send(withdrawal)
+            portfolio_pre = adt.snapshot_portfolio(self.portfolio)
 
     def update_world(self, change, portfolio_pre, withdrawal):
         assert isinstance(change, AnnualChange)
