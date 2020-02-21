@@ -86,8 +86,45 @@ def sim_japan(save=False):
     if save:
         sim_results.to_csv('bonds-monthly-japan-fred.csv')
 
+def sim_siamond():
+    print('Simulating for siamond')
+    import numpy
+    import pandas
+    import math
+    import pandas_datareader.data as web
+    import xlrd
+    from bond_simulator import simulate_annual_turnover
+    import bond_simulator
 
+    raw_bills = pandas.read_excel('OECD IMF RoE Interest Rates.xlsx', index_col=0, header=2, usecols='A:Q', sheet_name='Ref Bills')
+    bill_avg = pandas.read_excel('OECD IMF RoE Interest Rates.xlsx', index_col=0, header=2, usecols='A,V', squeeze=True, sheet_name='Ref Bills')
+    bills = raw_bills.apply(lambda x: x.fillna(bill_avg))
+    raw_bonds = pandas.read_excel('OECD IMF RoE Interest Rates.xlsx', index_col=0, header=2, usecols='A:Q', sheet_name='Ref Bonds')
+    bond_avg = pandas.read_excel('OECD IMF RoE Interest Rates.xlsx', index_col=0, header=2, usecols='A,V', squeeze=True, sheet_name='Ref Bonds')
+    bonds = raw_bonds.apply(lambda x: x.fillna(bond_avg))
+    def make_rates(country):
+        rates = pandas.DataFrame(columns=range(1, 11),
+                                dtype=numpy.float64,
+                                data={1: bills[country], 10: bonds[country]})
+        rates.interpolate(axis=1, inplace=True)
+        rates.index = pandas.date_range(start='1/1/1940', end='1/1/2020', freq='AS-JAN')
+        rates.reindex()
+        return rates
+    print(make_rates('USA')['1970'])
+
+    results = {}
+
+    for country in bills.columns:
+        print(f'Simulating {country}.')
+        rates = make_rates(country)
+        df = simulate_annual_turnover(10, 4, rates)
+        results[country] = df['Change']
+
+    result_df = pandas.DataFrame(results)
+    result_df.to_csv('OECD Bond Returns [Annual].csv')
+    
 if __name__ == '__main__':
+    sim_siamond()
     #sim_uk()
-    sim_aus(save=False)
+    #sim_aus(save=False)
     #sim_japan(save=False)
