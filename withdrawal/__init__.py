@@ -59,3 +59,13 @@ def make_vpw(length):
         '__init__' : lambda self, portfolio, harvesting: VPW.__init__(self, portfolio, harvesting, years_left=length)
     })
 
+class VPWFloored(VPW):
+    def __init__(self, portfolio, harvest_strategy, floor=Decimal('.03'), years_left=35):
+        super().__init__(portfolio, harvest_strategy, years_left=years_left)
+        self.floor = floor * portfolio.value
+
+    def _calc(self):
+        vpw = super()._calc()
+        floor = self.floor * self.cumulative_inflation
+        return max(floor, vpw)
+
