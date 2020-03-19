@@ -1,6 +1,14 @@
 import numpy
 import pandas
 
+# How to make it work monthly?
+# gen_payments need to be monthly instead of annual
+# numpy.py in value() needs to use maturity/12
+# does bootstrap need to be reworked?
+# need to use the a2m to get a monthly yield
+# what if we just create the bond with a "monthly" yield instead of annual?
+#   does everything magically work if we do that?
+
 def iterate_fund(ladder, yield_curve, max_maturity):
     ladder.reduce_maturities()
     ladder.generate_payments()
@@ -20,17 +28,16 @@ def a2m(annual_rate):
     return pow(annual_rate + 1, 1/12) - 1
 
 class Bond:
-    def __init__(self, face_value, yield_pct, maturity, payments_per_year=1):
+    def __init__(self, face_value, yield_pct, maturity):
         self.face_value = face_value
         self.yield_pct = yield_pct
         self.maturity = maturity
-        self.payments_per_year = payments_per_year
         
     def __repr__(self):
         return ('Maturity: %d | Yield: %.2f%% | Face Value: $%.2f' % (self.maturity, self.yield_pct * 100, self.face_value))
 
     def gen_payment(self):
-        return self.face_value * self.yield_pct / self.payments_per_year
+        return self.face_value * self.yield_pct
     
     def value(self, rates):
         value = numpy.pv(rates[self.maturity - 1], self.maturity, (self.face_value * self.yield_pct), self.face_value)
@@ -83,7 +90,7 @@ class BondLadder:
         self.cash += sum((b.value(rates) for b in to_sell))
         return to_sell
 
-def bootstrap(yield_curve, max_bonds, min_maturity, monthly=False):
+def bootstrap(yield_curve, max_bonds, min_maturity):
     ladder = BondLadder(min_maturity, max_bonds)
     starting_face_value = 50 # chosen arbitrarily (to match longinvest)
 
@@ -129,19 +136,7 @@ def make_annual_ladder(max_maturity, min_maturity, yields):
 
     return ladder
 
-def simulate_monthly_turnover(max_maturity, min_maturity, rates):
-    """
-    rates is expected to be a pandas dataframe with one column per month
-    up to max_maturity * 12 columns (i.e. 10 years requires 120 monthly columns)
-    """
-    min_maturity = min_maturity * 12
-    max_maturity = max_maturity * 12
-
-    initial_yields = rates.iloc[0]
-    ladder = bootstrap(initial_yields, max_maturity, min_maturity, monthly=True)
-    return loop(ladder, rates.iterrows(), max_maturity)
-
-def simulate_annual_turnover(max_maturity, min_maturity, rates):
+def simulate_turnover(max_maturity, min_maturity, rates):
     """
     rate is expected to be a pandas dataframe with one column per year
     up to max maturity columns (10 years == 10 columns)
