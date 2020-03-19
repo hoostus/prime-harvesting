@@ -90,6 +90,7 @@ def simulate_lmp(series, portfolio=(750000,250000), years=40, lmp_real_annual=De
                 rp = 0
 
         annual.append(YearlyResults(
+            year = 0,
             returns = gains,
             withdraw_n = amount,
             withdraw_r = amount / cumulative_inflation,
@@ -125,6 +126,7 @@ def simulate_accumulation(series,
         strategy.send(annual_inflow)
 
         annual.append(YearlyResults(
+            year = 0,
             returns = gains,
             withdraw_n = 0,
             withdraw_r = 0,

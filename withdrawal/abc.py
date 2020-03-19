@@ -41,10 +41,9 @@ class WithdrawalStrategy(abc.ABC):
         while True:
             results = self.update_world(change, portfolio_pre, actual_withdrawal)
             change = yield results
-
+            portfolio_pre = adt.snapshot_portfolio(self.portfolio)
             withdrawal = self.next()
             actual_withdrawal = self.harvest.send(withdrawal)
-            portfolio_pre = adt.snapshot_portfolio(self.portfolio)
 
     def update_world(self, change, portfolio_pre, withdrawal):
         assert isinstance(change, AnnualChange)
@@ -69,6 +68,7 @@ class WithdrawalStrategy(abc.ABC):
             withdraw_pct_cur = withdrawal / portfolio_pre.value_n
 
         return YearlyResults(
+            year = change.year,
             returns_n = p_gains,
             returns_r = ((1+p_gains) / (1+self.current_inflation)) - 1,
             withdraw_n = withdrawal,

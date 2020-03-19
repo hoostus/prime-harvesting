@@ -23,6 +23,7 @@ def snapshot_portfolio(portfolio):
 
 YearlyResults = collections.namedtuple('YearlyResults',
 [
+    'year',
     'returns_n',
     'returns_r',
     'withdraw_n',
