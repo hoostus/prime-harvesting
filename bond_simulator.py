@@ -1,13 +1,7 @@
 import numpy
 import pandas
-
-# How to make it work monthly?
-# gen_payments need to be monthly instead of annual
-# numpy.py in value() needs to use maturity/12
-# does bootstrap need to be reworked?
-# need to use the a2m to get a monthly yield
-# what if we just create the bond with a "monthly" yield instead of annual?
-#   does everything magically work if we do that?
+import functools
+import operator
 
 def iterate_fund(ladder, yield_curve, max_maturity):
     ladder.reduce_maturities()
@@ -23,9 +17,6 @@ def iterate_fund(ladder, yield_curve, max_maturity):
     nav = ladder.get_nav(yield_curve)
 
     return (ladder, nav)
-
-def a2m(annual_rate):
-    return pow(annual_rate + 1, 1/12) - 1
 
 class Bond:
     def __init__(self, face_value, yield_pct, maturity):
@@ -58,7 +49,13 @@ class BondLadder:
     def print_all_values(self, rates):
         for bond in sorted(self.ladder, key=lambda b: b.maturity):
             print(bond.value(rates))
-        
+
+    def maturity(self):
+        """ This is average maturity, weighted by face value """
+        m = functools.reduce(operator.add, [x.maturity * x.face_value for x in self.ladder])
+        fv = functools.reduce(operator.add, [x.face_value for x in self.ladder])
+        return m / fv
+
     def buy_bond(self, rate, maturity):
         b = Bond(self.cash, rate, maturity)
         self.add_bond(b)
@@ -69,7 +66,9 @@ class BondLadder:
         return self.cash + sum((b.value(rates) for b in self.ladder))
 
     def generate_payments(self):
-        self.cash += sum((b.gen_payment() for b in self.ladder))        
+        payments = sum((b.gen_payment() for b in self.ladder))
+        print(f'Payments: {payments}')
+        self.cash += payments
         
     def __repr__(self):
         return ('%d-%d Ladder { Num Bonds: %d. }' % (self.max_maturity, self.min_maturity, len(self.ladder)))
@@ -92,26 +91,34 @@ class BondLadder:
 
 def bootstrap(yield_curve, max_bonds, min_maturity):
     ladder = BondLadder(min_maturity, max_bonds)
-    starting_face_value = 50 # chosen arbitrarily (to match longinvest)
+    #starting_face_value = 50 # chosen arbitrarily (to match longinvest)
+    start_nav = 10_000
+    num_bonds = max_bonds - min_maturity
+    starting_face_value = start_nav / num_bonds
 
     for j in range(min_maturity, max_bonds+1):
         bond_yield = yield_curve[max_bonds-1]
         face_value = pow(1 + bond_yield, j-min_maturity) * starting_face_value
         b = Bond(face_value, bond_yield, j)
         ladder.add_bond(b)
+    ladder.print_all_values(yield_curve)
     return ladder
 
 def loop(ladder, rates, max_maturity):
-    df = pandas.DataFrame(columns=['NAV', 'Change'])
+    df = pandas.DataFrame(columns=['NAV', 'Change', 'Maturity'])
 
     # The first iterations have fake data with duplicate years
     # But that's okay because we overwrite them with later data
     # (since they all have the same year)
     for (year, current_rates) in rates:
-#        if year.year % 5 == 0 and year.month == 1:
-#            print('Calculating...', year.year)
+        if year.year > 1951: break
+        m = ladder.maturity()
+        # This is a hack to handle switching between monthly & yearly
+        # simulations. It assumes we never have a maturity more than this
+        if m > 30:
+            m /= 12
         (ladder, nav) = iterate_fund(ladder, current_rates.tolist(), max_maturity)
-        df.loc[year] = {'NAV' : nav, 'Change' : None}
+        df.loc[year] = {'NAV' : nav, 'Change' : None, 'Maturity': m}
 
     calculate_returns(df)
     return df
@@ -120,21 +127,6 @@ def calculate_returns(df):
     change = df / df.shift(1) - 1
     df['Change'] = change.shift(-1)
     return df
-
-def make_annual_ladder(max_maturity, min_maturity, yields):
-    rate = yields[max_maturity - 1]
-    
-    # We have to add the "- 12" in order to make things like up with how
-    # longinvest runs things. His "10-4" ladder is really more of "10-3" ladder:
-    # bonds get sold the moment they become a 3 year bond.
-    ladder = BondLadder(min_maturity - 12, max_maturity)
-
-    face_value = 50
-    for i in range(min_maturity, max_maturity + 1, 12):
-        ladder.add_bond(Bond(face_value, rate, i))
-        face_value = face_value * (1 + rate)
-
-    return ladder
 
 def simulate_turnover(max_maturity, min_maturity, rates):
     """
