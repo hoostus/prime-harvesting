@@ -2,6 +2,7 @@ import numpy
 import pandas
 import functools
 import operator
+import math
 
 def iterate_fund(ladder, yield_curve, max_maturity):
     ladder.reduce_maturities()
@@ -33,7 +34,22 @@ class Bond:
     def value(self, rates):
         value = numpy.pv(rates[self.maturity - 1], self.maturity, (self.face_value * self.yield_pct), self.face_value)
         return -value
-    
+
+    def yield_to_maturity(self, rates):
+        current_price = self.value(rates)
+        c = self.gen_payment() + ((self.face_value - current_price) / self.maturity)
+        return c / ((self.face_value + current_price) / 2)
+
+    def duration(self, rates):
+        i = self.yield_to_maturity(rates)
+        r = self.yield_pct
+        n = self.maturity
+        a = (1 + i) / i
+        b_numerator = (1 + i) + (n * (r - i))
+        b_denominator = (r * (math.pow(1 + i, n) - 1)) + i
+        b = b_numerator / b_denominator
+        return a - b
+
 class BondLadder:
     def __init__(self, min_maturity, max_maturity):
         self.min_maturity = min_maturity
@@ -50,11 +66,30 @@ class BondLadder:
         for bond in sorted(self.ladder, key=lambda b: b.maturity):
             print(bond.value(rates))
 
-    def maturity(self):
-        """ This is average maturity, weighted by face value """
-        m = functools.reduce(operator.add, [x.maturity * x.face_value for x in self.ladder])
-        fv = functools.reduce(operator.add, [x.face_value for x in self.ladder])
-        return m / fv
+    def duration(self, rates):
+        d = sum([x.duration(rates) * x.face_value for x in self.ladder])
+        face_value = sum([x.face_value for x in self.ladder])
+        return d / face_value
+
+
+    def maturity_weighted_face_value(self):
+        m = sum([x.maturity * x.face_value for x in self.ladder])
+        face_value = sum([x.face_value for x in self.ladder])
+        return m / face_value
+
+    def maturity_weighted_npv(self, rates):
+        m = sum([x.maturity * x.value(rates) for x in self.ladder])
+        npv = sum([x.value(rates) for x in self.ladder])
+        return m / npv
+
+    def coupon(self, rates):
+        c = sum([x.yield_pct * x.face_value for x in self.ladder])
+        return c / self.get_nav(rates)
+
+    def yield_to_maturity(self, rates):
+        ytm = sum([x.yield_to_maturity(rates) * x.face_value for x in self.ladder])
+        face_value = sum([x.face_value for x in self.ladder])
+        return ytm / face_value
 
     def buy_bond(self, rate, maturity):
         b = Bond(self.cash, rate, maturity)
@@ -67,15 +102,14 @@ class BondLadder:
 
     def generate_payments(self):
         payments = sum((b.gen_payment() for b in self.ladder))
-        print(f'Payments: {payments}')
         self.cash += payments
         
     def __repr__(self):
         return ('%d-%d Ladder { Num Bonds: %d. }' % (self.max_maturity, self.min_maturity, len(self.ladder)))
         
     def add_bond(self, bond):
-        #assert bond.maturity <= self.max_maturity
-        #assert bond.maturity >= self.min_maturity
+        assert bond.maturity <= self.max_maturity
+        assert bond.maturity >= self.min_maturity
         self.ladder.add(bond)
     
     def reduce_maturities(self):
@@ -101,24 +135,34 @@ def bootstrap(yield_curve, max_bonds, min_maturity):
         face_value = pow(1 + bond_yield, j-min_maturity) * starting_face_value
         b = Bond(face_value, bond_yield, j)
         ladder.add_bond(b)
-    ladder.print_all_values(yield_curve)
+#    ladder.print_all_values(yield_curve)
     return ladder
 
 def loop(ladder, rates, max_maturity):
-    df = pandas.DataFrame(columns=['NAV', 'Change', 'Maturity'])
+    df = pandas.DataFrame(columns=['NAV', 'Change', 'Maturity', 'Coupon', 'YTM', 'Duration'])
 
-    # The first iterations have fake data with duplicate years
-    # But that's okay because we overwrite them with later data
-    # (since they all have the same year)
     for (year, current_rates) in rates:
-        if year.year > 1951: break
-        m = ladder.maturity()
+        #if year.year > 1951: break
+        m_fv = ladder.maturity_weighted_face_value()
+        coupon = ladder.coupon(current_rates)
+        ytm = ladder.yield_to_maturity(current_rates)
+        duration = ladder.duration(current_rates)
         # This is a hack to handle switching between monthly & yearly
         # simulations. It assumes we never have a maturity more than this
-        if m > 30:
-            m /= 12
+        if m_fv > 30:
+            m_fv /= 12
+            coupon = math.pow(1+coupon, 12) - 1
+            ytm = math.pow(1+ytm, 12) - 1
+            duration /= 12
         (ladder, nav) = iterate_fund(ladder, current_rates.tolist(), max_maturity)
-        df.loc[year] = {'NAV' : nav, 'Change' : None, 'Maturity': m}
+        df.loc[year] = {
+            'NAV' : nav,
+            'Change' : None,
+            'Maturity': m_fv,
+            'Coupon': coupon,
+            'YTM': ytm,
+            'Duration': duration
+        }
 
     calculate_returns(df)
     return df
