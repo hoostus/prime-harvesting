@@ -15,3 +15,6 @@ oecd_bond_returns.csv
 WERCOMP-*.csv
 .pytest_cache/v/cache/nodeids
 */.ipynb_checkpoints/*
+uv.lock
+.vscode
+.python-version
