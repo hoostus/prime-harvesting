@@ -41,7 +41,7 @@ def calc_years_sustained(annual):
     
 def calc_ulcer(annual):
     df = pandas.DataFrame(annual)
-    vals = df['portfolio_pre'].get_values()
+    vals = df['portfolio_pre'].to_numpy()
     ulcer = metrics.ulcer([p.value_r for p in vals])
     return ulcer
 
@@ -86,7 +86,7 @@ def calc_dras(series, years):
     return d_ras
     
 def calc_coverage_ratio(annual, years):
-    s_y = calc_years_sustained(annual)
+    s_y = calc_years_sustained(annual) + years
     L = years
     c = s_y / L
 

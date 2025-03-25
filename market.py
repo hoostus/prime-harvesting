@@ -5,15 +5,15 @@ import collections
 from adt import AnnualChange
 import random
 
-def namedtuple_with_defaults(typename, field_names, default_values=()):
-    T = collections.namedtuple(typename, field_names)
-    T.__new__.__defaults__ = (None,) * len(T._fields)
-    if isinstance(default_values, collections.Mapping):
-        prototype = T(**default_values)
-    else:
-        prototype = T(*default_values)
-    T.__new__.__defaults__ = tuple(prototype)
-    return T
+#def namedtuple_with_defaults(typename, field_names, default_values=()):
+#    T = collections.namedtuple(typename, field_names)
+#    T.__new__.__defaults__ = (None,) * len(T._fields)
+#    if isinstance(default_values, collections.Mapping):
+#      prototype = T(**default_values)
+#    else:
+#        prototype = T(*default_values)
+#    T.__new__.__defaults__ = tuple(prototype)
+#    return T
 
 
 def constant_returns(stocks=Decimal('.04'), bonds=Decimal('.02'), inflation=Decimal('.02')):
@@ -43,7 +43,7 @@ class PortfolioCharts_1927:
     of the various subclasses. That means the asset allocation is fixed and can't
     vary over time. But it also means I don't have to rewrite everything right now. """
     asset_classes = [x + y for x in ("LC", "MC", "SC") for y in ("B", "G", "V")]
-    Weights = namedtuple_with_defaults("Weights", asset_classes, default_values=[0] * len(asset_classes))
+    #Weights = namedtuple_with_defaults("Weights", asset_classes, default_values=[0] * len(asset_classes))
 
     def __init__(self, weights):
         self.dataframe = pandas.read_csv('stock-index-calculator-20160620-v2.csv')
@@ -184,7 +184,7 @@ class US_1871_Monthly:
             yield self.fmt(row[1])
             count += 1
             if length and count >= length:
-                raise StopIteration
+                return
 
 
 class Japan_1957:

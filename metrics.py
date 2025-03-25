@@ -6,6 +6,7 @@ import numpy
 import builtins
 import math
 from scipy.stats import gamma
+import numpy_financial as npf
 
 # numpy can't handle Decimal so we have this helper function
 def average(xs):
@@ -46,7 +47,7 @@ def pmt(rate, nper, pv):
     if nper < 1:
         return pv
 
-    n = -numpy.pmt(float(rate), nper, float(pv), 0, 1)
+    n = -npf.pmt(float(rate), nper, float(pv), 0, 1)
     n = math.floor(n)
 
     # We can never take out more than the portfolio or less than 0.
